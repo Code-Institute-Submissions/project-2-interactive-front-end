@@ -117,13 +117,13 @@ function getAccountTankData(acc_id) {
             
         });
        
-        getAccountTankStats(myTankArray);
+        getTankStats(myTankArray);
         
     return false;
     });
 }
 
-function getAccountTankStats(myTankArray) {
+function getTankStats(myTankArray) {
 //*************************************************************************************************************************//
 //          This function will call the API to get the all available Tanks in game                                         //
 //          This information is needed to enrich the data from the previous API with tank type, name, Nation and level     //
@@ -148,9 +148,61 @@ function getAccountTankStats(myTankArray) {
                 "Tank_Id": Tank_id
                 });
             });
-        
+        //combine the to datasets (player-vehicle with vehicle stats)
+        CombineArray(TankArray, myTankArray);
         return false;
         });
+}
+
+function CombineArray(TankArray, myTankArray) {
+//*****************************************************************************************************************************//
+//          This function will combine the player tankss list with the tank list to get battle results per nation, level, type //
+//          Also comverting the tank type to a short name which is mostly used and know by the players                         //
+//          Also calculating the winrate per tank based on the wins and battles fought                                         //
+//*****************************************************************************************************************************//    
+    var TankStats = [];
+    Object.keys(myTankArray).forEach(function(key1){
+    var TID = myTankArray[key1].Name;
+        Object.keys(TankArray).forEach(function(key2){
+            var TankID = TankArray[key2].Tank_Id;
+            var Name = getSecondPart(TankArray[key2].Name);
+            Name = getSecondPartOfSecondPart(Name);
+            var Type = TankArray[key2].Type;
+            if (TID == TankID) {
+                if (Type == "heavyTank") {
+                    Type = "HT";
+                } else if (Type == "AT-SPG") {
+                    Type = "TD";
+                } else if (Type == "mediumTank") {
+                    Type = "MT";
+                } else if (Type == "lightTank") {
+                    Type = "LT";
+                } 
+                
+                TankStats.push({
+                    "TankID": TankArray[key2].Tank_Id,
+                    "Name": Name,
+                    "Nation":TankArray[key2].Nation,
+                    "Type":Type,
+                    "Level": TankArray[key2].Level,
+                    "Wins": myTankArray[key1].WinAmount,
+                    "Battles": myTankArray[key1].BattleAmount,
+                    "Mark": myTankArray[key1].Mastery,
+                    "Winrate": ((myTankArray[key1].WinAmount / myTankArray[key1].BattleAmount) * 100).toFixed(2),
+                }); 
+            }
+        });
+        
+    });
+    console.log(TankStats)
+    return false;
+}
+
+function getSecondPart(str) {
+    return str.split(':')[1];
+}
+function getSecondPartOfSecondPart(str) {
+    return str.split(/_(.+)/)[1];
 }
 
 
