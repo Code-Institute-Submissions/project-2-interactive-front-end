@@ -1,11 +1,12 @@
 function getDataFromApi(type, arg, cb) {
-//function to connect to the API of World of tanks, extended with the search type and parameter//
-//option 1: search player name to Get Account ID//
-//option 2: search account_id to get player statistics//
-//option 3: search account_id to get player vs vehicle stats
-//option 4: search for all tanks to get the tank name, level, nation//
-//Option 5: search for specific tank stats
-    
+//*****************************************************************************************************************************************************************//
+//                      function to connect to the API of World of tanks, extended with the search type and parameter                                              //
+//                      option 1: search player name to Get Account ID                                                                                             //
+//                      option 2: search account_id to get player statistics                                                                                       //
+//                      option 3: search account_id to get player vs vehicle stats                                                                                 //
+//                      option 4: search for all tanks to get the tank name, level, nation                                                                         //
+//                      Option 5: search for specific tank stats                                                                                                   //
+//*****************************************************************************************************************************************************************//    
     var xhr = new XMLHttpRequest();
 
     xhr.onreadystatechange = function() {
@@ -36,14 +37,16 @@ function getDataFromApi(type, arg, cb) {
 }
 
 function getPlayerInfo() {
-    
-    //first type is always nickname
+//*********************************************************************************************************************//
+//          This function will call the API to get the Account ID back based on the requested Nickname search         //
+//********************************************************************************************************************//
     var type = "nickname"
-    var arg = document.getElementById("inputNickname").value;
-    //var type = "search=" + document.getElementById("uname").value;
     var Accountid = "" ;
-    // get the account_id from the player that is filled in the input field//
+    
+    // get the account_id from the player that from the input field//
+    var arg = document.getElementById("inputNickname").value;
     getDataFromApi(type, arg,  function(data) {
+
         var respLen = data.meta.count;
         data = data.data["0"];
         
@@ -53,7 +56,39 @@ function getPlayerInfo() {
             else {
                 Accountid = data['account_id']
                 document.getElementById("NickName").innerHTML = "Overall player statistics for: " + data['nickname'] ;
+                
+                //After waiting for the Request to be finished, The Account ID can be used to for the next API call to get the account statistics
+                getGenericAccountStats(Accountid);
             }
     return false;
     });
 }
+
+
+function getGenericAccountStats(acc_id) {
+//*********************************************************************************************************************//
+//          This function will call the API to get the General Account Statistics back based on the found Accound ID   //
+//********************************************************************************************************************//
+    var type = "account_id"
+    var arg = acc_id.toString();
+    getDataFromApi(type, arg, function(data) {
+        var account = acc_id;
+        
+        var GlobalRating = data.data[account].global_rating;
+        var LastBattle = data.data[account].last_battle_time;
+        let timeValue = new Date(LastBattle);
+        
+        timeValue = timeValue * 1000;
+        var d = new Date(timeValue);
+        document.getElementById("Global_Rating").innerHTML = "Global Rating: " + GlobalRating ;
+        document.getElementById("Last_Battle").innerHTML = "Last Battle played at: " + d.toLocaleDateString() ;
+        
+        // ------------------------------------------------------------Get now the data of the player on his specific tanks
+        getAccountTankData(account)
+        
+    return false;
+    });
+}
+
+
+
