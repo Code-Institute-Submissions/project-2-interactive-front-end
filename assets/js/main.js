@@ -90,5 +90,67 @@ function getGenericAccountStats(acc_id) {
     });
 }
 
+function getAccountTankData(acc_id) {
+//*************************************************************************************************************************//
+//          This function will call the API to get the Tanks and Their Battle results back based on the found Accound ID   //
+//*************************************************************************************************************************//
+    var type = "Player-vehicle"
+    var arg = acc_id.toString();
+    getDataFromApi(type, arg, function(data) {
+
+        var account = acc_id;
+        var myTankArray = [];
+        
+        data = data.data[account];
+        
+        data.forEach(function(item) {
+            var MoM = item.mark_of_mastery;
+            var tankid = item.tank_id;
+            var battles = item.statistics.battles;
+            var wins = item.statistics.wins;
+            myTankArray.push({
+            "Name": tankid,
+            "WinAmount":  wins,
+            "BattleAmount":battles,
+            "Mastery": MoM
+            });
+            
+        });
+       
+        getAccountTankStats(myTankArray);
+        
+    return false;
+    });
+}
+
+function getAccountTankStats(myTankArray) {
+//*************************************************************************************************************************//
+//          This function will call the API to get the all available Tanks in game                                         //
+//          This information is needed to enrich the data from the previous API with tank type, name, Nation and level     //
+//          End result is a list that will be passed to a function to combine both                                         //
+//*************************************************************************************************************************//
+    var type = "vehicle"
+    var arg = ""; //no need for an accountid
+    getDataFromApi(type, arg, function(data) {
+        data = data.data;
+        var TankArray = [];
+            Object.keys(data).forEach(function(key) {
+                var Name = data[key].name;
+                var Nation = data[key].nation;
+                var Type = data[key].type;
+                var Level = data[key].level;
+                var Tank_id = data[key].tank_id; 
+                TankArray.push({
+                "Name": Name,
+                "Nation":Nation,
+                "Type":Type,
+                "Level": Level,
+                "Tank_Id": Tank_id
+                });
+            });
+        
+        return false;
+        });
+}
 
 
