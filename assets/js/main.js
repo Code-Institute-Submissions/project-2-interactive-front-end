@@ -30,11 +30,45 @@ function getDataFromApi(type, arg, cb) {
     else if (type == 'vehicle-stats') {
         xhr.open("GET", "https://api.worldoftanks.eu/wot/tanks/stats/?application_id=5d6d1657c5bc736658f1e6aa3dcb5f6e&account_id="+ arg + "&fields=all%2C+tank_id");
     }
-    else {
-        //not a valid search
+    else  {
+       
     }
     xhr.send();
 }
+
+function loadJSON(file, callback) {   
+
+    var xobj = new XMLHttpRequest();
+    // xobj.overrideMimeType("application/json");
+    xobj.open('GET', file, true); 
+    xobj.onreadystatechange = function () {
+          if (xobj.readyState == 4 && xobj.status == "200") {
+            callback(xobj.responseText);
+          }
+    };
+    xobj.send(null);  
+ }
+ 
+
+function getJSONFile() {
+    var Wn8Array = [];
+    loadJSON("./assets/data/WN8.json", function(callback) {
+        var actual_JSON = JSON.parse(callback);
+        actual_JSON.forEach(function(item) {
+            Wn8Array.push({
+            "IDNum" : item.IDNum,
+            "expfrag" : item.expFrag,
+            "expDmg" : item.expDamage,
+            "expSpot" : item.expSpot,
+            "expDef" : item.expDef,
+            "expWin" : item.expWinRate,
+            });
+        });
+    });
+    console.log(Wn8Array);
+} 
+
+
 
 function getPlayerInfo() {
 //*********************************************************************************************************************//
@@ -104,15 +138,11 @@ function getAccountTankData(acc_id) {
         data = data.data[account];
         
         data.forEach(function(item) {
-            var MoM = item.mark_of_mastery;
-            var tankid = item.tank_id;
-            var battles = item.statistics.battles;
-            var wins = item.statistics.wins;
             myTankArray.push({
-            "Name": tankid,
-            "WinAmount":  wins,
-            "BattleAmount":battles,
-            "Mastery": MoM
+            "Name": item.tank_id,
+            "WinAmount":  item.statistics.wins,
+            "BattleAmount":item.statistics.battles,
+            "Mastery": item.mark_of_mastery
             });
             
         });
@@ -135,17 +165,12 @@ function getTankStats(myTankArray) {
         data = data.data;
         var TankArray = [];
             Object.keys(data).forEach(function(key) {
-                var Name = data[key].name;
-                var Nation = data[key].nation;
-                var Type = data[key].type;
-                var Level = data[key].level;
-                var Tank_id = data[key].tank_id; 
                 TankArray.push({
-                "Name": Name,
-                "Nation":Nation,
-                "Type":Type,
-                "Level": Level,
-                "Tank_Id": Tank_id
+                    "Name": data[key].name,
+                    "Nation":data[key].nation,
+                    "Type":data[key].type,
+                    "Level": data[key].level,
+                    "Tank_Id": data[key].tank_id
                 });
             });
         //combine the to datasets (player-vehicle with vehicle stats)
@@ -162,13 +187,9 @@ function CombineArray(TankArray, myTankArray) {
 //*****************************************************************************************************************************//    
     var TankStats = [];
     Object.keys(myTankArray).forEach(function(key1){
-    var TID = myTankArray[key1].Name;
         Object.keys(TankArray).forEach(function(key2){
-            var TankID = TankArray[key2].Tank_Id;
-            var Name = getSecondPart(TankArray[key2].Name);
-            Name = getSecondPartOfSecondPart(Name);
             var Type = TankArray[key2].Type;
-            if (TID == TankID) {
+            if (myTankArray[key1].Name == TankArray[key2].Tank_Id) {
                 if (Type == "heavyTank") {
                     Type = "HT";
                 } else if (Type == "AT-SPG") {
@@ -181,7 +202,7 @@ function CombineArray(TankArray, myTankArray) {
                 
                 TankStats.push({
                     "TankID": TankArray[key2].Tank_Id,
-                    "Name": Name,
+                    "Name": getSecondPartOfSecondPart(getSecondPart(TankArray[key2].Name)),
                     "Nation":TankArray[key2].Nation,
                     "Type":Type,
                     "Level": TankArray[key2].Level,
