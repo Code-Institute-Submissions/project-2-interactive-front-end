@@ -28,7 +28,7 @@ function getDataFromApi(type, arg, cb) {
         xhr.open("GET", "https://api.worldoftanks.eu/wot/encyclopedia/tanks/?application_id=5d6d1657c5bc736658f1e6aa3dcb5f6e&fields=level%2C+nation%2C+tank_id%2C+type%2C+name");
     }
     else if (type == 'vehicle-stats') {
-        xhr.open("GET", "https://api.worldoftanks.eu/wot/tanks/stats/?application_id=5d6d1657c5bc736658f1e6aa3dcb5f6e&account_id="+ arg + "&fields=all%2C+tank_id");
+        xhr.open("GET", "https://api.worldoftanks.eu/wot/tanks/stats/?application_id=5d6d1657c5bc736658f1e6aa3dcb5f6e&account_id="+ arg + "&fields=all%2C+tank_id")
     }
     else  {
        
@@ -51,6 +51,11 @@ function loadJSON(file, callback) {
  
 
 function getJSONFile() {
+//*********************************************************************************************************************//
+//          This function will import a JSON FILE which contains expected tank values in order to calculate WN8 scores.//
+//          http://wiki.wnefficiency.net/pages/WN8                                                                     //
+//          http://www.wnefficiency.net/wnexpected/                                                                   //
+//********************************************************************************************************************//
     var Wn8Array = [];
     loadJSON("./assets/data/WN8.json", function(callback) {
         var actual_JSON = JSON.parse(callback);
@@ -118,42 +123,79 @@ function getGenericAccountStats(acc_id) {
         document.getElementById("Last_Battle").innerHTML = "Last Battle played at: " + d.toLocaleDateString() ;
         
         // ------------------------------------------------------------Get now the data of the player on his specific tanks
-        getAccountTankData(account)
+        getAccountTankStats(account)
         
     return false;
     });
 }
 
-function getAccountTankData(acc_id) {
-//*************************************************************************************************************************//
-//          This function will call the API to get the Tanks and Their Battle results back based on the found Accound ID   //
-//*************************************************************************************************************************//
-    var type = "Player-vehicle"
+// function getAccountTankData(acc_id) {
+// //*************************************************************************************************************************//
+// //          This function will call the API to get the Tanks and Their Battle results back based on the found Accound ID   //
+// //*************************************************************************************************************************//
+//     var type = "Player-vehicle"
+//     var arg = acc_id.toString();
+//     getDataFromApi(type, arg, function(data) {
+
+//         var account = acc_id;
+//         var myTankArray = [];
+        
+//         data = data.data[account];
+        
+//         data.forEach(function(item) {
+//             myTankArray.push({
+//             "Name": item.tank_id,
+//             "WinAmount":  item.statistics.wins,
+//             "BattleAmount":item.statistics.battles,
+//             "Mastery": item.mark_of_mastery
+//             });
+            
+//         });
+//         getAccountTankStats(arg, myTankArray);
+//     return false;
+//     });
+// }
+function getAccountTankStats(acc_id){
+//****************************************************************************************************************************//
+//          This function will call the API to get the Extended Tanks statistics results back based on the found Accound ID   //
+//          This information is needed to compare with the expected Tank stats in order to calculate the WN8 per Tannk vehicle//
+//****************************************************************************************************************************//   
+    var type = "vehicle-stats";
     var arg = acc_id.toString();
     getDataFromApi(type, arg, function(data) {
 
         var account = acc_id;
-        var myTankArray = [];
-        
+        var myTankStatsArray = [];
         data = data.data[account];
-        
-        data.forEach(function(item) {
-            myTankArray.push({
-            "Name": item.tank_id,
-            "WinAmount":  item.statistics.wins,
-            "BattleAmount":item.statistics.battles,
-            "Mastery": item.mark_of_mastery
+        console.log(data);
+        Object.keys(data).forEach(function(key) {
+                myTankStatsArray.push({
+                    "battles": data[key].all.battles,
+                    "capture_points":data[key].all.capture_points,
+                    "avg_cp":(data[key].all.capture_points / data[key].all.battles).toFixed(2),
+                    "damage_dealt":data[key].all.damage_dealt,
+                    "avg_dmg": (data[key].all.damage_dealt / data[key].all.battles).toFixed(2),
+                    "spotted": data[key].all.spotted,
+                    "avg_spot": (data[key].all.spotted / data[key].all.battles).toFixed(2),
+                    "frags": data[key].all.frags,
+                    "avg_frags": (data[key].all.frags / data[key].all.battles).toFixed(2),
+                    "dropped_capture_points": data[key].all.dropped_capture_points,
+                    "avg_dcp":(data[key].all.dropped_capture_points / data[key].all.battles).toFixed(2),
+                    "wins": data[key].all.wins,
+                    "avg_wins":(data[key].all.wins / data[key].all.battles).toFixed(2),
+                    "tank_id": data[key].tank_id
+                });
             });
-            
-        });
-       
-        getTankStats(myTankArray);
-        
+    console.log(myTankStatsArray);
+    getTankData(myTankStatsArray);
     return false;
     });
+    
+    
 }
 
-function getTankStats(myTankArray) {
+
+function getTankData(myTankStatsArray) {
 //*************************************************************************************************************************//
 //          This function will call the API to get the all available Tanks in game                                         //
 //          This information is needed to enrich the data from the previous API with tank type, name, Nation and level     //
@@ -174,22 +216,22 @@ function getTankStats(myTankArray) {
                 });
             });
         //combine the to datasets (player-vehicle with vehicle stats)
-        CombineArray(TankArray, myTankArray);
+        CombineArray(TankArray, myTankStatsArray);
         return false;
         });
 }
 
-function CombineArray(TankArray, myTankArray) {
+function CombineArray(TankArray, myTankStatsArray) {
 //*****************************************************************************************************************************//
 //          This function will combine the player tankss list with the tank list to get battle results per nation, level, type //
 //          Also comverting the tank type to a short name which is mostly used and know by the players                         //
 //          Also calculating the winrate per tank based on the wins and battles fought                                         //
 //*****************************************************************************************************************************//    
     var TankStats = [];
-    Object.keys(myTankArray).forEach(function(key1){
+    Object.keys(myTankStatsArray).forEach(function(key1){
         Object.keys(TankArray).forEach(function(key2){
             var Type = TankArray[key2].Type;
-            if (myTankArray[key1].Name == TankArray[key2].Tank_Id) {
+            if (myTankStatsArray[key1].tank_id == TankArray[key2].Tank_Id) {
                 if (Type == "heavyTank") {
                     Type = "HT";
                 } else if (Type == "AT-SPG") {
@@ -206,10 +248,19 @@ function CombineArray(TankArray, myTankArray) {
                     "Nation":TankArray[key2].Nation,
                     "Type":Type,
                     "Level": TankArray[key2].Level,
-                    "Wins": myTankArray[key1].WinAmount,
-                    "Battles": myTankArray[key1].BattleAmount,
-                    "Mark": myTankArray[key1].Mastery,
-                    "Winrate": ((myTankArray[key1].WinAmount / myTankArray[key1].BattleAmount) * 100).toFixed(2),
+                    "battles": myTankStatsArray[key1].battles,
+                    "capture_points":myTankStatsArray[key1].capture_points,
+                    "avg_cp":myTankStatsArray[key1].avg_cp,
+                    "damage_dealt":myTankStatsArray[key1].damage_dealt,
+                    "avg_dmg": myTankStatsArray[key1].avg_dmg,
+                    "spotted": myTankStatsArray[key1].spotted,
+                    "avg_spot": myTankStatsArray[key1].avg_spot,
+                    "frags": myTankStatsArray[key1].frags,
+                    "avg_frags": myTankStatsArray[key1].avg_frags,
+                    "dropped_capture_points": myTankStatsArray[key1].dropped_capture_points,
+                    "avg_dcp":myTankStatsArray[key1].avg_dcp,
+                    "wins": myTankStatsArray[key1].wins,
+                    "avg_wins":myTankStatsArray[key1].avg_wins
                 }); 
             }
         });
@@ -217,6 +268,25 @@ function CombineArray(TankArray, myTankArray) {
     });
     console.log(TankStats)
     return false;
+}
+
+function CalcWN8(){
+    
+
+// rDAMAGE = avgDmg     / expDmg
+// rSPOT   = avgSpot    / expSpot 
+// rFRAG   = avgFrag    / expFrag 
+// rDEF    = avgDef     / expDef 
+// rWIN    = avgWinRate / expWinRate
+
+// rWINc    = max(0,                     (rWIN    - 0.71) / (1 - 0.71) )
+// rDAMAGEc = max(0,                     (rDAMAGE - 0.22) / (1 - 0.22) )
+// rFRAGc   = max(0, min(rDAMAGEc + 0.2, (rFRAG   - 0.12) / (1 - 0.12)))
+// rSPOTc   = max(0, min(rDAMAGEc + 0.1, (rSPOT   - 0.38) / (1 - 0.38)))
+// rDEFc    = max(0, min(rDAMAGEc + 0.1, (rDEF    - 0.10) / (1 - 0.10)))
+
+// WN8 = 980*rDAMAGEc + 210*rDAMAGEc*rFRAGc + 155*rFRAGc*rSPOTc + 75*rDEFc*rFRAGc + 145*MIN(1.8,rWINc)
+
 }
 
 function getSecondPart(str) {
