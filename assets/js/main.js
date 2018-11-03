@@ -1,3 +1,4 @@
+
 function getDataFromApi(type, arg, cb) {
 //*****************************************************************************************************************************************************************//
 //                      function to connect to the API of World of tanks, extended with the search type and parameter                                              //
@@ -50,7 +51,7 @@ function loadJSON(file, callback) {
  }
  
 
-function getJSONFile() {
+function getJSONFile(TankStats) {
 //*********************************************************************************************************************//
 //          This function will import a JSON FILE which contains expected tank values in order to calculate WN8 scores.//
 //          http://wiki.wnefficiency.net/pages/WN8                                                                     //
@@ -69,8 +70,28 @@ function getJSONFile() {
             "expWin" : item.expWinRate,
             });
         });
+        Object.keys(TankStats).forEach(function(key1){
+            Object.keys(Wn8Array).forEach(function(key2){
+                if (TankStats[key1].TankID == Wn8Array[key2].IDNum) {
+                    var TankName = TankStats[key1].Name;
+                    var rDAMAGE = (TankStats[key1].avg_dmg/ Wn8Array[key2].expDmg);
+                    var rSPOT = (TankStats[key1].avg_spot/ Wn8Array[key2].expSpot);
+                    var rFRAG = (TankStats[key1].avg_frags/ Wn8Array[key2].expfrag);
+                    var rDEF = (TankStats[key1].avg_dcp / Wn8Array[key2].expDef);
+                    var rWIN = (TankStats[key1].avg_wins / Wn8Array[key2].expWin);
+                
+                    var rWINc = Math.max(0,(rWIN - 0.71) / (1 - 0.71));
+                    var rDAMAGEc = Math.max(0,(rDAMAGE - 0.22) / (1 - 0.22));
+                    var rFRAGc = Math.max(0, Math.min(rDAMAGEc + 0.2, (rFRAG - 0.12) / (1 - 0.12)));
+                    var rSPOTc = Math.max(0, Math.min(rDAMAGEc + 0.1, (rSPOT - 0.38) / (1 - 0.38)));
+                    var rDEFc = Math.max(0, Math.min(rDAMAGEc + 0.1, (rDEF - 0.10) / (1 - 0.10)));
+                    
+                    var WN8 = (980*rDAMAGEc + 210*rDAMAGEc*rFRAGc + 155*rFRAGc*rSPOTc + 75*rDEFc*rFRAGc + 145*(Math.min(1.8,rWINc))).toFixed(2);
+                    console.log(WN8, TankName, TankStats[key1].TankID);
+                }
+            });
+        });
     });
-    console.log(Wn8Array);
 } 
 
 
@@ -167,26 +188,26 @@ function getAccountTankStats(acc_id){
         var account = acc_id;
         var myTankStatsArray = [];
         data = data.data[account];
-        console.log(data);
+        // console.log(data);
         Object.keys(data).forEach(function(key) {
                 myTankStatsArray.push({
                     "battles": data[key].all.battles,
                     "capture_points":data[key].all.capture_points,
-                    "avg_cp":(data[key].all.capture_points / data[key].all.battles).toFixed(2),
+                    "avg_cp":(data[key].all.capture_points / data[key].all.battles).toFixed(3),
                     "damage_dealt":data[key].all.damage_dealt,
-                    "avg_dmg": (data[key].all.damage_dealt / data[key].all.battles).toFixed(2),
+                    "avg_dmg": (data[key].all.damage_dealt / data[key].all.battles).toFixed(3),
                     "spotted": data[key].all.spotted,
-                    "avg_spot": (data[key].all.spotted / data[key].all.battles).toFixed(2),
+                    "avg_spot": (data[key].all.spotted / data[key].all.battles).toFixed(3),
                     "frags": data[key].all.frags,
-                    "avg_frags": (data[key].all.frags / data[key].all.battles).toFixed(2),
+                    "avg_frags": (data[key].all.frags / data[key].all.battles).toFixed(3),
                     "dropped_capture_points": data[key].all.dropped_capture_points,
-                    "avg_dcp":(data[key].all.dropped_capture_points / data[key].all.battles).toFixed(2),
+                    "avg_dcp":(data[key].all.dropped_capture_points / data[key].all.battles).toFixed(3),
                     "wins": data[key].all.wins,
-                    "avg_wins":(data[key].all.wins / data[key].all.battles).toFixed(2),
+                    "avg_wins":(data[key].all.wins / data[key].all.battles).toFixed(3),
                     "tank_id": data[key].tank_id
                 });
             });
-    console.log(myTankStatsArray);
+    // console.log(myTankStatsArray);
     getTankData(myTankStatsArray);
     return false;
     });
@@ -228,6 +249,7 @@ function CombineArray(TankArray, myTankStatsArray) {
 //          Also calculating the winrate per tank based on the wins and battles fought                                         //
 //*****************************************************************************************************************************//    
     var TankStats = [];
+    
     Object.keys(myTankStatsArray).forEach(function(key1){
         Object.keys(TankArray).forEach(function(key2){
             var Type = TankArray[key2].Type;
@@ -267,27 +289,12 @@ function CombineArray(TankArray, myTankStatsArray) {
         
     });
     console.log(TankStats)
+    getJSONFile(TankStats);
+    
     return false;
 }
 
-function CalcWN8(){
-    
 
-// rDAMAGE = avgDmg     / expDmg
-// rSPOT   = avgSpot    / expSpot 
-// rFRAG   = avgFrag    / expFrag 
-// rDEF    = avgDef     / expDef 
-// rWIN    = avgWinRate / expWinRate
-
-// rWINc    = max(0,                     (rWIN    - 0.71) / (1 - 0.71) )
-// rDAMAGEc = max(0,                     (rDAMAGE - 0.22) / (1 - 0.22) )
-// rFRAGc   = max(0, min(rDAMAGEc + 0.2, (rFRAG   - 0.12) / (1 - 0.12)))
-// rSPOTc   = max(0, min(rDAMAGEc + 0.1, (rSPOT   - 0.38) / (1 - 0.38)))
-// rDEFc    = max(0, min(rDAMAGEc + 0.1, (rDEF    - 0.10) / (1 - 0.10)))
-
-// WN8 = 980*rDAMAGEc + 210*rDAMAGEc*rFRAGc + 155*rFRAGc*rSPOTc + 75*rDEFc*rFRAGc + 145*MIN(1.8,rWINc)
-
-}
 
 function getSecondPart(str) {
     return str.split(':')[1];
