@@ -58,12 +58,16 @@ function getJSONFile(TankStats) {
 //          http://www.wnefficiency.net/wnexpected/                                                                   //
 //********************************************************************************************************************//
     var Wn8Array = [];
+    var b = 0;
+    var wn = 0;
+    var avgWn = 0;
+    
     loadJSON("./assets/data/WN8.json", function(callback) {
         var actual_JSON = JSON.parse(callback);
         actual_JSON.forEach(function(item) {
             Wn8Array.push({
             "IDNum" : item.IDNum,
-            "expfrag" : item.expFrag,
+            "expFrag" : item.expFrag,
             "expDmg" : item.expDamage,
             "expSpot" : item.expSpot,
             "expDef" : item.expDef,
@@ -74,9 +78,9 @@ function getJSONFile(TankStats) {
             Object.keys(Wn8Array).forEach(function(key2){
                 if (TankStats[key1].TankID == Wn8Array[key2].IDNum) {
                     var TankName = TankStats[key1].Name;
-                    var rDAMAGE = (TankStats[key1].avg_dmg/ Wn8Array[key2].expDmg);
-                    var rSPOT = (TankStats[key1].avg_spot/ Wn8Array[key2].expSpot);
-                    var rFRAG = (TankStats[key1].avg_frags/ Wn8Array[key2].expfrag);
+                    var rDAMAGE = (TankStats[key1].avg_dmg / Wn8Array[key2].expDmg);
+                    var rSPOT = (TankStats[key1].avg_spot / Wn8Array[key2].expSpot);
+                    var rFRAG = (TankStats[key1].avg_frags / Wn8Array[key2].expFrag);
                     var rDEF = (TankStats[key1].avg_dcp / Wn8Array[key2].expDef);
                     var rWIN = (TankStats[key1].avg_wins / Wn8Array[key2].expWin);
                 
@@ -86,14 +90,17 @@ function getJSONFile(TankStats) {
                     var rSPOTc = Math.max(0, Math.min(rDAMAGEc + 0.1, (rSPOT - 0.38) / (1 - 0.38)));
                     var rDEFc = Math.max(0, Math.min(rDAMAGEc + 0.1, (rDEF - 0.10) / (1 - 0.10)));
                     
-                    var WN8 = (980*rDAMAGEc + 210*rDAMAGEc*rFRAGc + 155*rFRAGc*rSPOTc + 75*rDEFc*rFRAGc + 145*(Math.min(1.8,rWINc))).toFixed(2);
-                    console.log(WN8, TankName, TankStats[key1].TankID);
+                    var WN8 = 980*rDAMAGEc + 210*rDAMAGEc*rFRAGc + 155*rFRAGc*rSPOTc + 75*rDEFc*rFRAGc + 145*Math.min(1.8,rWINc).toFixed(2);
+                    b += TankStats[key1].battles;
+                    wn += WN8 * TankStats[key1].battles;
+                    avgWn = (wn / b).toFixed(2);
+                    console.log(avgWn);
                 }
             });
         });
     });
 } 
-
+   
 
 
 function getPlayerInfo() {
@@ -150,32 +157,6 @@ function getGenericAccountStats(acc_id) {
     });
 }
 
-// function getAccountTankData(acc_id) {
-// //*************************************************************************************************************************//
-// //          This function will call the API to get the Tanks and Their Battle results back based on the found Accound ID   //
-// //*************************************************************************************************************************//
-//     var type = "Player-vehicle"
-//     var arg = acc_id.toString();
-//     getDataFromApi(type, arg, function(data) {
-
-//         var account = acc_id;
-//         var myTankArray = [];
-        
-//         data = data.data[account];
-        
-//         data.forEach(function(item) {
-//             myTankArray.push({
-//             "Name": item.tank_id,
-//             "WinAmount":  item.statistics.wins,
-//             "BattleAmount":item.statistics.battles,
-//             "Mastery": item.mark_of_mastery
-//             });
-            
-//         });
-//         getAccountTankStats(arg, myTankArray);
-//     return false;
-//     });
-// }
 function getAccountTankStats(acc_id){
 //****************************************************************************************************************************//
 //          This function will call the API to get the Extended Tanks statistics results back based on the found Accound ID   //
@@ -203,16 +184,13 @@ function getAccountTankStats(acc_id){
                     "dropped_capture_points": data[key].all.dropped_capture_points,
                     "avg_dcp":(data[key].all.dropped_capture_points / data[key].all.battles).toFixed(3),
                     "wins": data[key].all.wins,
-                    "avg_wins":(data[key].all.wins / data[key].all.battles).toFixed(3),
+                    "avg_wins":(data[key].all.wins / data[key].all.battles*100).toFixed(3),
                     "tank_id": data[key].tank_id
                 });
             });
-    // console.log(myTankStatsArray);
     getTankData(myTankStatsArray);
     return false;
     });
-    
-    
 }
 
 
@@ -288,13 +266,10 @@ function CombineArray(TankArray, myTankStatsArray) {
         });
         
     });
-    console.log(TankStats)
     getJSONFile(TankStats);
     
     return false;
 }
-
-
 
 function getSecondPart(str) {
     return str.split(':')[1];
