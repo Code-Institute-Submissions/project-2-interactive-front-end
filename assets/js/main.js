@@ -314,13 +314,19 @@ function makeGraphs(transactionsData) {
     show_selectors(ndx);
     makeGraphsWinRate(ndx);
     makeGraphsWN8(ndx);
-
+    MakePieChart(ndx);
+    MakePieChartLevel(ndx);
+        
+    dc.renderAll();
 }
 
 function show_selectors(ndx) {
     var disciplineDimLevel = ndx.dimension(dc.pluck("Level"));
     var disciplineSelectLevel = disciplineDimLevel.group();
-
+    
+    var disciplineDimType = ndx.dimension(dc.pluck("Type"));
+    var disciplineSelectType = disciplineDimType.group();
+    
     dc.selectMenu("#Level_selector")
         .dimension(disciplineDimLevel)
         .group(disciplineSelectLevel)
@@ -328,7 +334,10 @@ function show_selectors(ndx) {
     dc.selectMenu("#Level_selector2")
         .dimension(disciplineDimLevel)
         .group(disciplineSelectLevel)    
-        
+    
+    dc.selectMenu("#Type_selector")
+        .dimension(disciplineDimType)
+        .group(disciplineSelectType);    
 }
 
 function makeGraphsWinRate(ndx) {
@@ -355,7 +364,7 @@ var dim = ndx.dimension(dc.pluck('Level'));
                 return p;
             },
             function () {
-                return {Wins: 0, Count: 0, Total: 0, Average: 0, Battles: 0};
+                return {Wins: 0, Count: 0, Average: 0, Battles: 0};
             }
         );
      
@@ -377,9 +386,9 @@ var dim = ndx.dimension(dc.pluck('Level'));
         })
         .xAxisLabel("Level")
         .yAxis().ticks(9);
-        
-        dc.renderAll();
+
 }
+
 function makeGraphsWN8(ndx) {
 var dim = ndx.dimension(dc.pluck('Level'));
         var group = dim.group().reduce(
@@ -397,16 +406,16 @@ var dim = ndx.dimension(dc.pluck('Level'));
                     p.Battles = 0;
                     p.Average = 0;
                 } else {
-                    p.WN8 -= parseInt(v.WN8);
+                    
                     p.Battles -= v.Battles;
                     p.WN8 -= parseInt((v.WN8 * v.Battles).toFixed(2));
-                    p.Average = parseInt(((p.WN8 * v.Battles) / p.Battles).toFixed(2));
+                    p.Average = parseInt((p.WN8) / p.Battles).toFixed(2);
                 }
                 return p;
                 console.log(p);
             },
             function () {
-                return {WN8: 0, Count: 0, Total: 0, Average: 0, Battles: 0};
+                return {WN8: 0, Count: 0, Average: 0, Battles: 0};
             }
                 
         );
@@ -432,6 +441,39 @@ var dim = ndx.dimension(dc.pluck('Level'));
         })
         .xAxisLabel("Level")
         .yAxis().ticks(9);
-        
-        dc.renderAll();
+
+}
+
+function MakePieChart(ndx){
+    
+    var name_dim = ndx.dimension(dc.pluck('Type'));
+    var total_battles = name_dim.group().reduceSum(dc.pluck('Battles'));
+    
+    dc.pieChart('#Type-chart')
+        .height(300)
+        .width(380)
+        .radius(90)
+        .transitionDuration(1500)
+        .dimension(name_dim)
+        .group(total_battles)
+        .legend(dc.legend().x(15).y(25).itemHeight(10).gap(5));
+
+    
+}
+function MakePieChartLevel(ndx){
+    
+    var name_dim = ndx.dimension(dc.pluck('Level'));
+    var total_battles = name_dim.group().reduceSum(dc.pluck('Battles'));
+    
+    dc.pieChart('#Tier-chart')
+        .height(300)
+        .width(380)
+        .radius(90)
+        .transitionDuration(1500)
+        .dimension(name_dim)
+        .group(total_battles)
+        .ordering(function(d) { return d.key })
+        .legend(dc.legend().x(15).y(25).itemHeight(10).gap(5));
+
+    
 }
