@@ -8,6 +8,12 @@
     <!--bootstrap links-->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     
+    <!--DC Graphs-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.css" />
     
     <!--Reference to own style sheet-->
     <link rel="stylesheet" href="assets/css/style.css" type="text/css" />
@@ -45,7 +51,31 @@
             </div>
         </div>
     </div>
-</section>
+    <div class="row">
+        <div class="col-sm-4 col-md-4 col-sm-offset-2">
+            <div class="box-wrapper">
+                <div class="title">
+                    <h4 id="Level_selector2">Average WinRate per Level&#09;</h4>
+                </div>
+                <div class="clearfix">
+                    <div id="bar-chart-winrate"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-4 col-md-4">
+            <div class="box-wrapper">
+                <div class="title">
+                    <h4 id="Level_selector">Average WN8 per Level&#09;</h4>
+                </div>
+                <div class="clearfix">
+                    <div id="bar-chart-wn8"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</section> 
 
 
 <!--JQuery and Javascript references-->

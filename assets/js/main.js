@@ -56,7 +56,6 @@ function getJSONFile(TankStats) {
 //          This function will import a JSON FILE which contains expected tank values in order to calculate WN8 scores.//
 //          http://wiki.wnefficiency.net/pages/WN8                                                                     //
 //          http://www.wnefficiency.net/wnexpected/                                                                   //
-//          After collection the JSON File, loop through the stats object and calculate the WN8 score                 //
 //********************************************************************************************************************//
     var Wn8Array = [];
     var b = 0;
@@ -80,6 +79,11 @@ function getJSONFile(TankStats) {
 } 
    
 function calculateWn8(TankStats, Wn8Array){
+//*********************************************************************************************************************//
+//          This function will combine the object created from JSON import with the Tanks Stats and will calculate    //
+//          the WN8 score per tank, and stores that in a new Object which contains now all Tank data + WN8 score      //
+//********************************************************************************************************************//    
+
 var TankWn8 = [];
     Object.keys(TankStats).forEach(function(key1){
         Object.keys(Wn8Array).forEach(function(key2){
@@ -99,25 +103,21 @@ var TankWn8 = [];
                 var WN8 = (980*rDAMAGEc + 210*rDAMAGEc*rFRAGc + 155*rFRAGc*rSPOTc + 75*rDEFc*rFRAGc + 145*Math.min(1.8,rWINc)).toFixed(2);
                 
                 TankWn8.push({
-                    "tank_id": TankStats[key1].TankID,
+                    "Tank_id": TankStats[key1].TankID,
                     "TankName" : TankStats[key1].Name,
                     "Level":  TankStats[key1].Level,
                     "Type":  TankStats[key1].Type,
                     "Nation":  TankStats[key1].Nation,
-                    // "capture_points":TankStats[key1].capture_points,
-                    // "damage_dealt":TankStats[key1].damage_dealt,
-                    // "spotted": TankStats[key1].spotted,
-                    // "frags": TankStats[key1].frags,
-                    // "dropped_capture_points": TankStats[key1].dropped_capture_points,
-                    "wins": TankStats[key1].wins,
-                    "battles": TankStats[key1].battles,
-                    "avg_wins":(TankStats[key1].wins / TankStats[key1].battles*100).toFixed(3),
+                    "Wins": TankStats[key1].wins,
+                    "Battles": TankStats[key1].battles,
+                    "Avg_wins":(TankStats[key1].wins / TankStats[key1].battles*100).toFixed(3),
                     "WN8" : WN8
                 });
             }
         });
     });
     console.log(TankWn8)
+    makeGraphs(TankWn8)
 }
 
 function getPlayerInfo() {
@@ -294,5 +294,144 @@ function getSecondPart(str) {
 function getSecondPartOfSecondPart(str) {
     return str.split(/_(.+)/)[1];
 }
+// ******************************************************************************************************************//
+//                                          Making the GRAPH Section                                                 //
+// ******************************************************************************************************************//
+function makeGraphs(transactionsData) {
+    var List = [];
+    console.log(transactionsData)
+    
+    transactionsData.forEach(function(d){
+        d.Avg_wins = parseInt(d.Avg_wins);
+        d.Wins = parseInt(d.Wins);
+        d.Battles = parseInt(d.Battles);
+        d.Level = parseInt(d.Level);
+        d.WN8 = parseInt(d.WN8);
+    });
+    
+    var ndx = crossfilter(transactionsData);
+    
+    show_selectors(ndx);
+    makeGraphsWinRate(ndx);
+    makeGraphsWN8(ndx);
 
+}
 
+function show_selectors(ndx) {
+    var disciplineDimLevel = ndx.dimension(dc.pluck("Level"));
+    var disciplineSelectLevel = disciplineDimLevel.group();
+
+    dc.selectMenu("#Level_selector")
+        .dimension(disciplineDimLevel)
+        .group(disciplineSelectLevel)
+
+    dc.selectMenu("#Level_selector2")
+        .dimension(disciplineDimLevel)
+        .group(disciplineSelectLevel)    
+        
+}
+
+function makeGraphsWinRate(ndx) {
+var dim = ndx.dimension(dc.pluck('Level'));
+        var group = dim.group().reduce(
+            function (p, v) {
+                p.Count++;
+                p.Wins += v.Wins;
+                p.Battles += v.Battles;
+                p.Average = p.Wins / p.Battles;
+                return p;
+            },
+            function (p, v) {
+                p.Count--;
+                if (p.Count == 0) {
+                    p.Wins = 0;
+                    p.Battles = 0;
+                    p.Average = 0;
+                } else {
+                    p.Wins -= v.Wins;
+                    p.Battles -= v.Battles;
+                    p.Average = p.Wins / p.Battles;
+                }
+                return p;
+            },
+            function () {
+                return {Wins: 0, Count: 0, Total: 0, Average: 0, Battles: 0};
+            }
+        );
+     
+    var chart = dc.barChart("#bar-chart-winrate");
+    chart
+        .width(400)
+        .height(300)
+        .margins({ top: 10, right: 150, bottom: 50, left: 50 })
+        .dimension(dim)
+        .group(group)
+        .valueAccessor(function (p) {
+            return p.value.Average.toFixed(4);
+        })
+        .x(d3.scale.ordinal())
+        .xUnits(dc.units.ordinal)
+        .elasticY(true)
+        .colorAccessor(function (d) {
+            return d.key;
+        })
+        .xAxisLabel("Level")
+        .yAxis().ticks(9);
+        
+        dc.renderAll();
+}
+function makeGraphsWN8(ndx) {
+var dim = ndx.dimension(dc.pluck('Level'));
+        var group = dim.group().reduce(
+            function (p, v) {
+                p.Count++;
+                p.Battles += v.Battles;
+                p.WN8 += parseInt((v.WN8 * v.Battles).toFixed(2));
+                p.Average = parseInt((p.WN8 / p.Battles).toFixed(2)); 
+                return p;
+            },
+            function (p, v) {
+                p.Count--;
+                if (p.Count == 0) {
+                    p.WN8 = 0;
+                    p.Battles = 0;
+                    p.Average = 0;
+                } else {
+                    p.WN8 -= parseInt(v.WN8);
+                    p.Battles -= v.Battles;
+                    p.WN8 -= parseInt((v.WN8 * v.Battles).toFixed(2));
+                    p.Average = parseInt(((p.WN8 * v.Battles) / p.Battles).toFixed(2));
+                }
+                return p;
+                console.log(p);
+            },
+            function () {
+                return {WN8: 0, Count: 0, Total: 0, Average: 0, Battles: 0};
+            }
+                
+        );
+    
+
+    var chart = dc.barChart("#bar-chart-wn8");
+    chart
+        .width(400)
+        .height(300)
+        .margins({ top: 10, right: 150, bottom: 50, left: 50 })
+        .dimension(dim)
+        .group(group)
+        .renderHorizontalGridLines(true)
+        .valueAccessor(function (p) {
+            return p.value.Average;
+        })
+        .x(d3.scale.ordinal())
+        .y(d3.scale.linear())
+        .xUnits(dc.units.ordinal)
+        .elasticY(true)
+        .colorAccessor(function (d) {
+            return d.key;
+        })
+        .xAxisLabel("Level")
+        .yAxis().ticks(9);
+        
+        dc.renderAll();
+}
