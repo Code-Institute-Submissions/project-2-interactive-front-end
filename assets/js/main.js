@@ -56,6 +56,7 @@ function getJSONFile(TankStats) {
 //          This function will import a JSON FILE which contains expected tank values in order to calculate WN8 scores.//
 //          http://wiki.wnefficiency.net/pages/WN8                                                                     //
 //          http://www.wnefficiency.net/wnexpected/                                                                   //
+//          After collection the JSON File, loop through the stats object and calculate the WN8 score                 //
 //********************************************************************************************************************//
     var Wn8Array = [];
     var b = 0;
@@ -74,34 +75,50 @@ function getJSONFile(TankStats) {
             "expWin" : item.expWinRate,
             });
         });
-        Object.keys(TankStats).forEach(function(key1){
-            Object.keys(Wn8Array).forEach(function(key2){
-                if (TankStats[key1].TankID == Wn8Array[key2].IDNum) {
-                    var TankName = TankStats[key1].Name;
-                    var rDAMAGE = (TankStats[key1].avg_dmg / Wn8Array[key2].expDmg);
-                    var rSPOT = (TankStats[key1].avg_spot / Wn8Array[key2].expSpot);
-                    var rFRAG = (TankStats[key1].avg_frags / Wn8Array[key2].expFrag);
-                    var rDEF = (TankStats[key1].avg_dcp / Wn8Array[key2].expDef);
-                    var rWIN = (TankStats[key1].avg_wins / Wn8Array[key2].expWin);
-                
-                    var rWINc = Math.max(0,(rWIN - 0.71) / (1 - 0.71));
-                    var rDAMAGEc = Math.max(0,(rDAMAGE - 0.22) / (1 - 0.22));
-                    var rFRAGc = Math.max(0, Math.min(rDAMAGEc + 0.2, (rFRAG - 0.12) / (1 - 0.12)));
-                    var rSPOTc = Math.max(0, Math.min(rDAMAGEc + 0.1, (rSPOT - 0.38) / (1 - 0.38)));
-                    var rDEFc = Math.max(0, Math.min(rDAMAGEc + 0.1, (rDEF - 0.10) / (1 - 0.10)));
-                    
-                    var WN8 = 980*rDAMAGEc + 210*rDAMAGEc*rFRAGc + 155*rFRAGc*rSPOTc + 75*rDEFc*rFRAGc + 145*Math.min(1.8,rWINc).toFixed(2);
-                    b += TankStats[key1].battles;
-                    wn += WN8 * TankStats[key1].battles;
-                    avgWn = (wn / b).toFixed(2);
-                    console.log(avgWn);
-                }
-            });
-        });
+        calculateWn8(TankStats, Wn8Array)
     });
 } 
    
-
+function calculateWn8(TankStats, Wn8Array){
+var TankWn8 = [];
+    Object.keys(TankStats).forEach(function(key1){
+        Object.keys(Wn8Array).forEach(function(key2){
+            if (TankStats[key1].TankID == Wn8Array[key2].IDNum) {
+                var rDAMAGE = (TankStats[key1].avg_dmg / Wn8Array[key2].expDmg);
+                var rSPOT = (TankStats[key1].avg_spot / Wn8Array[key2].expSpot);
+                var rFRAG = (TankStats[key1].avg_frags / Wn8Array[key2].expFrag);
+                var rDEF = (TankStats[key1].avg_dcp / Wn8Array[key2].expDef);
+                var rWIN = (TankStats[key1].avg_wins / Wn8Array[key2].expWin);
+            
+                var rWINc = Math.max(0,(rWIN - 0.71) / (1 - 0.71));
+                var rDAMAGEc = Math.max(0,(rDAMAGE - 0.22) / (1 - 0.22));
+                var rFRAGc = Math.max(0, Math.min(rDAMAGEc + 0.2, (rFRAG - 0.12) / (1 - 0.12)));
+                var rSPOTc = Math.max(0, Math.min(rDAMAGEc + 0.1, (rSPOT - 0.38) / (1 - 0.38)));
+                var rDEFc = Math.max(0, Math.min(rDAMAGEc + 0.1, (rDEF - 0.10) / (1 - 0.10)));
+                
+                var WN8 = (980*rDAMAGEc + 210*rDAMAGEc*rFRAGc + 155*rFRAGc*rSPOTc + 75*rDEFc*rFRAGc + 145*Math.min(1.8,rWINc)).toFixed(2);
+                
+                TankWn8.push({
+                    "tank_id": TankStats[key1].TankID,
+                    "TankName" : TankStats[key1].Name,
+                    "Level":  TankStats[key1].Level,
+                    "Type":  TankStats[key1].Type,
+                    "Nation":  TankStats[key1].Nation,
+                    // "capture_points":TankStats[key1].capture_points,
+                    // "damage_dealt":TankStats[key1].damage_dealt,
+                    // "spotted": TankStats[key1].spotted,
+                    // "frags": TankStats[key1].frags,
+                    // "dropped_capture_points": TankStats[key1].dropped_capture_points,
+                    "wins": TankStats[key1].wins,
+                    "battles": TankStats[key1].battles,
+                    "avg_wins":(TankStats[key1].wins / TankStats[key1].battles*100).toFixed(3),
+                    "WN8" : WN8
+                });
+            }
+        });
+    });
+    console.log(TankWn8)
+}
 
 function getPlayerInfo() {
 //*********************************************************************************************************************//
