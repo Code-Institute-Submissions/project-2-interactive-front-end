@@ -320,6 +320,8 @@ function makeGraphs(transactionsData) {
     MakePieChartLevel(ndx);
     MakePieChartNation(ndx);
     makeWN8(ndx);
+    MakeDataTable(ndx)
+    MakeDataTableSmall(ndx)
         
     dc.renderAll();
 }
@@ -329,6 +331,9 @@ function show_selectors(ndx) {
     var disciplineSelectLevel = disciplineDimLevel.group();
     
     var disciplineDimType = ndx.dimension(dc.pluck("Type"));
+    var disciplineSelectType = disciplineDimType.group();
+    
+    var disciplineDimType = ndx.dimension(dc.pluck("Nation"));
     var disciplineSelectType = disciplineDimType.group();
     
     dc.selectMenu("#Level_selector")
@@ -342,6 +347,10 @@ function show_selectors(ndx) {
     dc.selectMenu("#Type_selector")
         .dimension(disciplineDimType)
         .group(disciplineSelectType);    
+        
+    dc.selectMenu("#Nation_selector")
+        .dimension(disciplineDimType)
+        .group(disciplineSelectType);  
 }
 
 function makeGraphsWinRate(ndx) {
@@ -538,6 +547,7 @@ function MakePieChartLevel(ndx){
 
     
 }
+
 function MakePieChartNation(ndx){
     
     var name_dim = ndx.dimension(dc.pluck('Nation'));
@@ -553,5 +563,48 @@ function MakePieChartNation(ndx){
         .ordering(function(d) { return d.key })
         .legend(dc.legend().x(15).y(25).itemHeight(10).gap(5));
 
+    
+}
+
+function MakeDataTable(ndx){
+
+    var Dim = ndx.dimension(function (d) {return d.TankName;})
+    dc.dataTable("#Table")
+      .width(250).height(800)
+      .dimension(Dim)
+      .group(function(d) {return ' '})
+      .size(205)             // number of rows to return
+      .columns([
+      function(d) { return d.TankName;},
+      function(d) { return d.Nation;},
+      function(d) { return d.Type;},
+      function(d) { return d.Level;},
+      function(d) { return d.Battles;},
+      function(d) { return d.Avg_wins;},
+      function(d) { return d.WN8;},
+    ])
+      .sortBy(function(d){ return d.Winrate;})
+      .order(d3.descending);
+
+dc.renderAll();
+    
+}
+function MakeDataTableSmall(ndx){
+
+    var Dim = ndx.dimension(function (d) {return d.TankName;})
+    dc.dataTable("#TableSmall")
+      .width(250).height(800)
+      .dimension(Dim)
+      .group(function(d) {return ' '})
+      .size(205)             // number of rows to return
+      .columns([
+      function(d) { return d.TankName;},
+      function(d) { return d.Avg_wins;},
+      function(d) { return d.WN8;},
+    ])
+      .sortBy(function(d){ return d.Avg_wins;})
+      .order(d3.descending);
+
+dc.renderAll();
     
 }
