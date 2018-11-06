@@ -111,7 +111,8 @@ var TankWn8 = [];
                     "Wins": TankStats[key1].wins,
                     "Battles": TankStats[key1].battles,
                     "Avg_wins":(TankStats[key1].wins / TankStats[key1].battles*100).toFixed(3),
-                    "WN8" : WN8
+                    "WN8" : WN8,
+                    "All" : "All"
                 });
             }
         });
@@ -307,6 +308,7 @@ function makeGraphs(transactionsData) {
         d.Battles = parseInt(d.Battles);
         d.Level = parseInt(d.Level);
         d.WN8 = parseInt(d.WN8);
+        
     });
     
     var ndx = crossfilter(transactionsData);
@@ -316,6 +318,8 @@ function makeGraphs(transactionsData) {
     makeGraphsWN8(ndx);
     MakePieChart(ndx);
     MakePieChartLevel(ndx);
+    MakePieChartNation(ndx);
+    makeWN8(ndx);
         
     dc.renderAll();
 }
@@ -375,6 +379,7 @@ var dim = ndx.dimension(dc.pluck('Level'));
         .margins({ top: 10, right: 150, bottom: 50, left: 50 })
         .dimension(dim)
         .group(group)
+        .renderHorizontalGridLines(true)
         .valueAccessor(function (p) {
             return p.value.Average.toFixed(4);
         })
@@ -390,7 +395,7 @@ var dim = ndx.dimension(dc.pluck('Level'));
 }
 
 function makeGraphsWN8(ndx) {
-var dim = ndx.dimension(dc.pluck('Level'));
+var dim = ndx.dimension(dc.pluck('Type'));
         var group = dim.group().reduce(
             function (p, v) {
                 p.Count++;
@@ -412,7 +417,6 @@ var dim = ndx.dimension(dc.pluck('Level'));
                     p.Average = parseInt((p.WN8) / p.Battles).toFixed(2);
                 }
                 return p;
-                console.log(p);
             },
             function () {
                 return {WN8: 0, Count: 0, Average: 0, Battles: 0};
@@ -435,12 +439,68 @@ var dim = ndx.dimension(dc.pluck('Level'));
         .x(d3.scale.ordinal())
         .y(d3.scale.linear())
         .xUnits(dc.units.ordinal)
+        // .yUnits(dc.units.linear)
         .elasticY(true)
         .colorAccessor(function (d) {
             return d.key;
         })
         .xAxisLabel("Level")
-        .yAxis().ticks(9);
+        .yAxis().ticks();
+
+}
+
+function makeWN8(ndx) {
+var dim = ndx.dimension(dc.pluck('All'));
+        var group = dim.group().reduce(
+            function (p, v) {
+                p.Count++;
+                p.Battles += v.Battles;
+                p.WN8 += parseInt((v.WN8 * v.Battles).toFixed(2));
+                p.Average = parseInt((p.WN8 / p.Battles).toFixed(2)); 
+                return p;
+            },
+            function (p, v) {
+                p.Count--;
+                if (p.Count == 0) {
+                    p.WN8 = 0;
+                    p.Battles = 0;
+                    p.Average = 0;
+                } else {
+                    
+                    p.Battles -= v.Battles;
+                    p.WN8 -= parseInt((v.WN8 * v.Battles).toFixed(2));
+                    p.Average = parseInt((p.WN8) / p.Battles).toFixed(2);
+                }
+                return p;
+            },
+            function () {
+                return {WN8: 0, Count: 0, Average: 0, Battles: 0};
+            }
+                
+        );
+    
+
+    var chart = dc.barChart("#bar-wn8");
+    chart
+        .width(400)
+        .height(300)
+        .margins({ top: 10, right: 150, bottom: 50, left: 50 })
+        .dimension(dim)
+        .group(group)
+        .renderHorizontalGridLines(true)
+        .valueAccessor(function (p) {
+            return p.value.Average;
+        })
+        .x(d3.scale.ordinal())
+        .y(d3.scale.linear())
+        .xUnits(dc.units.ordinal)
+        // .yUnits(dc.units.linear)
+        .elasticY(true)
+        .colorAccessor(function (d) {
+            return d.key;
+        })
+        .xAxisLabel("Level")
+        .yAxis().ticks();
 
 }
 
@@ -460,12 +520,30 @@ function MakePieChart(ndx){
 
     
 }
+
 function MakePieChartLevel(ndx){
     
     var name_dim = ndx.dimension(dc.pluck('Level'));
     var total_battles = name_dim.group().reduceSum(dc.pluck('Battles'));
     
     dc.pieChart('#Tier-chart')
+        .height(300)
+        .width(380)
+        .radius(90)
+        .transitionDuration(1500)
+        .dimension(name_dim)
+        .group(total_battles)
+        .ordering(function(d) { return d.key })
+        .legend(dc.legend().x(15).y(25).itemHeight(10).gap(5));
+
+    
+}
+function MakePieChartNation(ndx){
+    
+    var name_dim = ndx.dimension(dc.pluck('Nation'));
+    var total_battles = name_dim.group().reduceSum(dc.pluck('Battles'));
+    
+    dc.pieChart('#Nation-chart')
         .height(300)
         .width(380)
         .radius(90)
