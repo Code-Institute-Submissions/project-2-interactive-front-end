@@ -146,7 +146,7 @@ function getPlayerInfo() {
             }
             else {
                 Accountid = data['account_id']
-                document.getElementById("NickName").innerHTML = "Overall player statistics for: " + data['nickname'] ;
+                $('#NickName').html(`<h4>Overall player statistics for: <span class="red">${data['nickname']}</span></h4>`);
                 $('#Comments').addClass("hidden");
                 $('#stats-section').removeClass("hidden");
                 //After waiting for the Request to be finished, The Account ID can be used to for the next API call to get the account statistics
@@ -172,9 +172,8 @@ function getGenericAccountStats(acc_id) {
         
         timeValue = timeValue * 1000;
         var d = new Date(timeValue);
-        document.getElementById("Global_Rating").innerHTML = "Global Rating: " + GlobalRating ;
-        document.getElementById("Last_Battle").innerHTML = "Last Battle played at: " + d.toLocaleDateString() ;
-        
+        $('#Global_Rating').html(`<h4>Global Rating: <span class="red">${GlobalRating}</span></h4>`);
+        $('#Last_Battle').html(`<h4>Last Battle played at: <span class="red">${d.toLocaleDateString()}</span></h4>`);
         // ------------------------------------------------------------Get now the data of the player on his specific tanks
         getAccountTankStats(account)
         

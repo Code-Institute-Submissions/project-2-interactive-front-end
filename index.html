@@ -20,9 +20,19 @@
     
     <title>WoT Statistics</title>
 </head>
+<header>
+    <nav class="navbar navbar-default nav-custom navbar-fixed-top font-roboto">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Home</a>
+            </div>
+            
+        </div>
+    </nav>
+</header>
 <body>
 
-<section>
+<section id="Home">
     <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
             <div class="box-wrapper search-block">
@@ -68,7 +78,7 @@
             <div class="box-wrapper">
                 <div class="clearfix stat-display">
                     <h3>Generic Account stats</h3>
-                    <h4 id="NickName" class="left"></h4>
+                    <div id="NickName" class="left"></div>
                     <h4 id="Global_Rating" class="left"></h4>
                     <h4 id="Last_Battle" class="left"></h4>
                     <h4><a class="btn btn-primary" role="button" href="javascript:dc.filterAll(); dc.renderAll();">Reset All Filters</a></h4>
@@ -78,7 +88,7 @@
     </div>
     <div class="row">
         <div class="col-sm-4 col-md-4 col-sm-offset-2">
-            <div class="box-wrapper">
+            <div class="box-wrapper silver-light-bg-colour">
                 <div class="title">
                     <h4 id="Level_selector2">Average WinRate per Level&#09;</h4>
                 </div>
@@ -181,7 +191,18 @@
         </div>
     </div>
 </section> 
-
+<footer>
+    <div class="row">
+        <div class="col-sm-8 col-sm-offset-2" id="copyrightInfo">
+            <div class="box-wrapper overview">
+                WoTStat is a free, player created web service for <a href="http://www.wargaming.net/">World of Tanks</a>. 
+                WoTStat is not an official website of Wargaming.net or any of its services.<br />World of Tanks is a trademark of 
+                <a href="http://www.wargaming.net/">Wargaming.net</a>
+            </div>
+        </div>
+    </div>
+            
+</footer>
 
 <!--JQuery and Javascript references-->
     <script type="text/javascript" src="https://code.jquery.com/jquery.min.js"></script>
