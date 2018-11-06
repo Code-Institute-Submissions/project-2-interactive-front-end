@@ -37,8 +37,32 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-sm-8 col-sm-offset-2" id="Comments">
+            <div class="box-wrapper overview">
+                <h2>This site is best presented on desktop systems!</h2>
+                <p>The main focus for this site is to have interactive possibilities with Graphs and Data Tables.
+                These functionalities work best on Desktop systems and have some scaling issues for smaller screen devices.
+                My focus is therefor the larger screens, and if succesful, later versions will address the smaller screen devices.</p>
+                <p ><mark class="highlight">IF YOU USE THIS SITE ON A MOBILE DEVICE, PUT IT IN LANDSCAPE</mark></p>
+                <h3>Comment from the Developer</h3>
+                <p>This site makes use of the official <a href="https://developers.wargaming.net/" target="blank">World of Tanks API.</a> 
+                You can search by player name and can use various filter options to see that players statistics per Tier, nation and Tank Type.
+                Statistics are as accurate as WoT API is up-to-date and is only useable for the EU server at the moment!
+                This site uses also the formula for <a href="http://wiki.wnefficiency.net/pages/WN8" target="blank">WN8.</a> calculation</p>
+                <h3>News</h3>
+                <p>15/10/2018: The current version of this site is still a Beta Version. The goal is to provide the next features in the upcoming months.
+                Mastery Badges per Tier</p>
+                <h3>How to Use this site</h3>
+                <p>This site differs from the existing sites because it has some interactive charts which can be used to show statistics based on a subset of data.
+                For example you can select 1 or more Levels, Nation or tank types and see your stats only for those tanks. In order to do so you can use the "Select" boxes or click on the specific
+                bar or pie-piece in the charts. All data (table and charts) are automatically adjusted! 
+                The reason why i am offering this functionality is because people can excel on lower levels and suck on the higher levels while the overall statistics don't show.</p>
+            </div>
+        </div>
+    </div>
 </section> 
-<section id="stats-section">
+<section id="stats-section" class="hidden">
     <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
             <div class="box-wrapper">
@@ -47,6 +71,7 @@
                     <h4 id="NickName" class="left"></h4>
                     <h4 id="Global_Rating" class="left"></h4>
                     <h4 id="Last_Battle" class="left"></h4>
+                    <h4><a class="btn btn-primary" role="button" href="javascript:dc.filterAll(); dc.renderAll();">Reset All Filters</a></h4>
                 </div>
             </div>
         </div>
@@ -66,7 +91,7 @@
         <div class="col-sm-4 col-md-4">
             <div class="box-wrapper">
                 <div class="title">
-                    <h4 id="Level_selector">Average WN8 per Level&#09;</h4>
+                    <h4 id="Type_selector">Average WN8 per Type&#09;</h4>
                 </div>
                 <div class="clearfix">
                     <div id="bar-chart-wn8"></div>
@@ -78,7 +103,7 @@
         <div class="col-sm-4 col-md-4 col-sm-offset-2">
             <div class="box-wrapper">
                 <div class="title">
-                    <h4 id="Type_selector">Battles per Type&#09;</h4>
+                    <h4 id="Type_selector2">Battles per Type&#09;</h4>
                 </div>
                 <div class="clearfix">
                     <div id="Type-chart"></div>
@@ -89,10 +114,10 @@
         <div class="col-sm-4 col-md-4 ">
             <div class="box-wrapper">
                 <div class="title">
-                    <h4 id="Tier_selector">Battles per Level&#09;</h4>
+                    <h4 id="Level_selector">Battles per Level&#09;</h4>
                 </div>
                 <div class="clearfix">
-                    <div id="Tier-chart"></div>
+                    <div id="Level-chart"></div>
                 </div>
             </div>
         </div>

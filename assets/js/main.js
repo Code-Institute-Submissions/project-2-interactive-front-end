@@ -83,11 +83,12 @@ function calculateWn8(TankStats, Wn8Array){
 //          This function will combine the object created from JSON import with the Tanks Stats and will calculate    //
 //          the WN8 score per tank, and stores that in a new Object which contains now all Tank data + WN8 score      //
 //********************************************************************************************************************//    
-
+var found = ""
 var TankWn8 = [];
     Object.keys(TankStats).forEach(function(key1){
         Object.keys(Wn8Array).forEach(function(key2){
             if (TankStats[key1].TankID == Wn8Array[key2].IDNum) {
+                
                 var rDAMAGE = (TankStats[key1].avg_dmg / Wn8Array[key2].expDmg);
                 var rSPOT = (TankStats[key1].avg_spot / Wn8Array[key2].expSpot);
                 var rFRAG = (TankStats[key1].avg_frags / Wn8Array[key2].expFrag);
@@ -110,12 +111,17 @@ var TankWn8 = [];
                     "Nation":  TankStats[key1].Nation,
                     "Wins": TankStats[key1].wins,
                     "Battles": TankStats[key1].battles,
-                    "Avg_wins":(TankStats[key1].wins / TankStats[key1].battles*100).toFixed(3),
+                    "Avg_wins":TankStats[key1].avg_wins,
                     "WN8" : WN8,
                     "All" : "All"
                 });
+                console.log(TankStats[key1].TankID, found)
+                found = false;
+                return;
             }
+            
         });
+        
     });
     console.log(TankWn8)
     makeGraphs(TankWn8)
@@ -141,7 +147,8 @@ function getPlayerInfo() {
             else {
                 Accountid = data['account_id']
                 document.getElementById("NickName").innerHTML = "Overall player statistics for: " + data['nickname'] ;
-                
+                $('#Comments').addClass("hidden");
+                $('#stats-section').removeClass("hidden");
                 //After waiting for the Request to be finished, The Account ID can be used to for the next API call to get the account statistics
                 getGenericAccountStats(Accountid);
             }
@@ -182,6 +189,7 @@ function getAccountTankStats(acc_id){
 //****************************************************************************************************************************//   
     var type = "vehicle-stats";
     var arg = acc_id.toString();
+    var Battles = 0;
     getDataFromApi(type, arg, function(data) {
 
         var account = acc_id;
@@ -189,22 +197,25 @@ function getAccountTankStats(acc_id){
         data = data.data[account];
         // console.log(data);
         Object.keys(data).forEach(function(key) {
-                myTankStatsArray.push({
-                    "battles": data[key].all.battles,
-                    "capture_points":data[key].all.capture_points,
-                    "avg_cp":(data[key].all.capture_points / data[key].all.battles).toFixed(3),
-                    "damage_dealt":data[key].all.damage_dealt,
-                    "avg_dmg": (data[key].all.damage_dealt / data[key].all.battles).toFixed(3),
-                    "spotted": data[key].all.spotted,
-                    "avg_spot": (data[key].all.spotted / data[key].all.battles).toFixed(3),
-                    "frags": data[key].all.frags,
-                    "avg_frags": (data[key].all.frags / data[key].all.battles).toFixed(3),
-                    "dropped_capture_points": data[key].all.dropped_capture_points,
-                    "avg_dcp":(data[key].all.dropped_capture_points / data[key].all.battles).toFixed(3),
-                    "wins": data[key].all.wins,
-                    "avg_wins":(data[key].all.wins / data[key].all.battles*100).toFixed(3),
-                    "tank_id": data[key].tank_id
-                });
+                Battles = parseInt(data[key].all.battles);
+                if (Battles > 0) {
+                    myTankStatsArray.push({
+                        "battles": data[key].all.battles,
+                        "capture_points":data[key].all.capture_points,
+                        "avg_cp":(data[key].all.capture_points / data[key].all.battles).toFixed(3),
+                        "damage_dealt":data[key].all.damage_dealt,
+                        "avg_dmg": (data[key].all.damage_dealt / data[key].all.battles).toFixed(3),
+                        "spotted": data[key].all.spotted,
+                        "avg_spot": (data[key].all.spotted / data[key].all.battles).toFixed(3),
+                        "frags": data[key].all.frags,
+                        "avg_frags": (data[key].all.frags / data[key].all.battles).toFixed(3),
+                        "dropped_capture_points": data[key].all.dropped_capture_points,
+                        "avg_dcp":(data[key].all.dropped_capture_points / data[key].all.battles).toFixed(3),
+                        "wins": data[key].all.wins,
+                        "avg_wins":(data[key].all.wins / data[key].all.battles*100).toFixed(3),
+                        "tank_id": data[key].tank_id
+                    });
+                }
             });
     getTankData(myTankStatsArray);
     return false;
@@ -279,7 +290,7 @@ function CombineArray(TankArray, myTankStatsArray) {
                     "avg_dcp":myTankStatsArray[key1].avg_dcp,
                     "wins": myTankStatsArray[key1].wins,
                     "avg_wins":myTankStatsArray[key1].avg_wins
-                }); 
+                });
             }
         });
         
@@ -334,7 +345,7 @@ function show_selectors(ndx) {
     var disciplineSelectType = disciplineDimType.group();
     
     var disciplineDimType = ndx.dimension(dc.pluck("Nation"));
-    var disciplineSelectType = disciplineDimType.group();
+    var disciplineSelectNation = disciplineDimType.group();
     
     dc.selectMenu("#Level_selector")
         .dimension(disciplineDimLevel)
@@ -347,10 +358,14 @@ function show_selectors(ndx) {
     dc.selectMenu("#Type_selector")
         .dimension(disciplineDimType)
         .group(disciplineSelectType);    
+    
+        dc.selectMenu("#Type_selector2")
+        .dimension(disciplineDimType)
+        .group(disciplineSelectType);
         
     dc.selectMenu("#Nation_selector")
         .dimension(disciplineDimType)
-        .group(disciplineSelectType);  
+        .group(disciplineSelectNation);  
 }
 
 function makeGraphsWinRate(ndx) {
@@ -508,7 +523,7 @@ var dim = ndx.dimension(dc.pluck('All'));
         .colorAccessor(function (d) {
             return d.key;
         })
-        .xAxisLabel("Level")
+        // .xAxisLabel("Level")
         .yAxis().ticks();
 
 }
@@ -535,7 +550,7 @@ function MakePieChartLevel(ndx){
     var name_dim = ndx.dimension(dc.pluck('Level'));
     var total_battles = name_dim.group().reduceSum(dc.pluck('Battles'));
     
-    dc.pieChart('#Tier-chart')
+    dc.pieChart('#Level-chart')
         .height(300)
         .width(380)
         .radius(90)
@@ -589,6 +604,7 @@ function MakeDataTable(ndx){
 dc.renderAll();
     
 }
+
 function MakeDataTableSmall(ndx){
 
     var Dim = ndx.dimension(function (d) {return d.TankName;})
