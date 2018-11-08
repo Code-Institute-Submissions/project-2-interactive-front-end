@@ -56,7 +56,7 @@ function getJSONFile(TankStats) {
 //          http://wiki.wnefficiency.net/pages/WN8                                                                     //
 //          http://www.wnefficiency.net/wnexpected/                                                                   //
 //********************************************************************************************************************//
-    var Wn8Array = [];
+    var Wn8Obj = [];
     var b = 0;
     var wn = 0;
     var avgWn = 0;
@@ -64,7 +64,7 @@ function getJSONFile(TankStats) {
     loadJSON("./assets/data/WN8.json", function(callback) {
         var actual_JSON = JSON.parse(callback);
         actual_JSON.forEach(function(item) {
-            Wn8Array.push({
+            Wn8Obj.push({
             "IDNum" : item.IDNum,
             "expFrag" : item.expFrag,
             "expDmg" : item.expDamage,
@@ -73,11 +73,11 @@ function getJSONFile(TankStats) {
             "expWin" : item.expWinRate,
             });
         });
-        calculateWn8(TankStats, Wn8Array)
+        calculateWn8(TankStats, Wn8Obj)
     });
 } 
    
-function calculateWn8(TankStats, Wn8Array){
+function calculateWn8(TankStats, Wn8Obj){
 //*********************************************************************************************************************//
 //          This function will combine the object created from JSON import with the Tanks Stats and will calculate    //
 //          the WN8 score per tank, and stores that in a new Object which contains now all Tank data + WN8 score      //
@@ -85,14 +85,14 @@ function calculateWn8(TankStats, Wn8Array){
 var found = ""
 var TankWn8 = [];
     Object.keys(TankStats).forEach(function(key1){
-        Object.keys(Wn8Array).forEach(function(key2){
-            if (TankStats[key1].TankID == Wn8Array[key2].IDNum) {
+        Object.keys(Wn8Obj).forEach(function(key2){
+            if (TankStats[key1].TankID == Wn8Obj[key2].IDNum) {
                 
-                var rDAMAGE = (TankStats[key1].avg_dmg / Wn8Array[key2].expDmg);
-                var rSPOT = (TankStats[key1].avg_spot / Wn8Array[key2].expSpot);
-                var rFRAG = (TankStats[key1].avg_frags / Wn8Array[key2].expFrag);
-                var rDEF = (TankStats[key1].avg_dcp / Wn8Array[key2].expDef);
-                var rWIN = (TankStats[key1].avg_wins / Wn8Array[key2].expWin);
+                var rDAMAGE = (TankStats[key1].avg_dmg / Wn8Obj[key2].expDmg);
+                var rSPOT = (TankStats[key1].avg_spot / Wn8Obj[key2].expSpot);
+                var rFRAG = (TankStats[key1].avg_frags / Wn8Obj[key2].expFrag);
+                var rDEF = (TankStats[key1].avg_dcp / Wn8Obj[key2].expDef);
+                var rWIN = (TankStats[key1].avg_wins / Wn8Obj[key2].expWin);
             
                 var rWINc = Math.max(0,(rWIN - 0.71) / (1 - 0.71));
                 var rDAMAGEc = Math.max(0,(rDAMAGE - 0.22) / (1 - 0.22));
@@ -188,12 +188,12 @@ function getAccountTankStats(acc_id){
     getDataFromApi(type, arg, function(data) {
 
         var account = acc_id;
-        var myTankStatsArray = [];
+        var myTankStats = [];
         data = data.data[account];
         Object.keys(data).forEach(function(key) {
                 Battles = parseInt(data[key].all.battles);
                 if (Battles > 0) {
-                    myTankStatsArray.push({
+                    myTankStats.push({
                         "battles": data[key].all.battles,
                         "capture_points":data[key].all.capture_points,
                         "avg_cp":(data[key].all.capture_points / data[key].all.battles).toFixed(3),
@@ -211,12 +211,12 @@ function getAccountTankStats(acc_id){
                     });
                 }
             });
-    getTankData(myTankStatsArray);
+    getTankData(myTankStats);
     return false;
     });
 }
 
-function getTankData(myTankStatsArray) {
+function getTankData(myTankStats) {
 //*************************************************************************************************************************//
 //          This function will call the API to get the all available Tanks in game                                         //
 //          This information is needed to enrich the data from the previous API with tank type, name, Nation and level     //
@@ -226,9 +226,9 @@ function getTankData(myTankStatsArray) {
     var arg = ""; //no need for an accountid
     getDataFromApi(type, arg, function(data) {
         data = data.data;
-        var TankArray = [];
+        var Tanks = [];
             Object.keys(data).forEach(function(key) {
-                TankArray.push({
+                Tanks.push({
                     "Name": data[key].name,
                     "Nation":data[key].nation,
                     "Type":data[key].type,
@@ -237,12 +237,12 @@ function getTankData(myTankStatsArray) {
                 });
             });
         //combine the to datasets (player-vehicle with vehicle stats)
-        CombineArray(TankArray, myTankStatsArray);
+        Combine(Tanks, myTankStats);
         return false;
         });
 }
 
-function CombineArray(TankArray, myTankStatsArray) {
+function Combine(Tanks, myTankStats) {
 //*****************************************************************************************************************************//
 //          This function will combine the player tankss list with the tank list to get battle results per nation, level, type //
 //          Also comverting the tank type to a short name which is mostly used and know by the players                         //
@@ -250,10 +250,10 @@ function CombineArray(TankArray, myTankStatsArray) {
 //*****************************************************************************************************************************//    
     var TankStats = [];
     
-    Object.keys(myTankStatsArray).forEach(function(key1){
-        Object.keys(TankArray).forEach(function(key2){
-            var Type = TankArray[key2].Type;
-            if (myTankStatsArray[key1].tank_id == TankArray[key2].Tank_Id) {
+    Object.keys(myTankStats).forEach(function(key1){
+        Object.keys(Tanks).forEach(function(key2){
+            var Type = Tanks[key2].Type;
+            if (myTankStats[key1].tank_id == Tanks[key2].Tank_Id) {
                 if (Type == "heavyTank") {
                     Type = "HT";
                 } else if (Type == "AT-SPG") {
@@ -265,24 +265,24 @@ function CombineArray(TankArray, myTankStatsArray) {
                 } 
                 
                 TankStats.push({
-                    "TankID": TankArray[key2].Tank_Id,
-                    "Name": getSecondPartOfSecondPart(getSecondPart(TankArray[key2].Name)),
-                    "Nation":TankArray[key2].Nation,
+                    "TankID": Tanks[key2].Tank_Id,
+                    "Name": getSecondPartOfSecondPart(getSecondPart(Tanks[key2].Name)),
+                    "Nation":Tanks[key2].Nation,
                     "Type":Type,
-                    "Level": TankArray[key2].Level,
-                    "battles": myTankStatsArray[key1].battles,
-                    "capture_points":myTankStatsArray[key1].capture_points,
-                    "avg_cp":myTankStatsArray[key1].avg_cp,
-                    "damage_dealt":myTankStatsArray[key1].damage_dealt,
-                    "avg_dmg": myTankStatsArray[key1].avg_dmg,
-                    "spotted": myTankStatsArray[key1].spotted,
-                    "avg_spot": myTankStatsArray[key1].avg_spot,
-                    "frags": myTankStatsArray[key1].frags,
-                    "avg_frags": myTankStatsArray[key1].avg_frags,
-                    "dropped_capture_points": myTankStatsArray[key1].dropped_capture_points,
-                    "avg_dcp":myTankStatsArray[key1].avg_dcp,
-                    "wins": myTankStatsArray[key1].wins,
-                    "avg_wins":myTankStatsArray[key1].avg_wins
+                    "Level": Tanks[key2].Level,
+                    "battles": myTankStats[key1].battles,
+                    "capture_points":myTankStats[key1].capture_points,
+                    "avg_cp":myTankStats[key1].avg_cp,
+                    "damage_dealt":myTankStats[key1].damage_dealt,
+                    "avg_dmg": myTankStats[key1].avg_dmg,
+                    "spotted": myTankStats[key1].spotted,
+                    "avg_spot": myTankStats[key1].avg_spot,
+                    "frags": myTankStats[key1].frags,
+                    "avg_frags": myTankStats[key1].avg_frags,
+                    "dropped_capture_points": myTankStats[key1].dropped_capture_points,
+                    "avg_dcp":myTankStats[key1].avg_dcp,
+                    "wins": myTankStats[key1].wins,
+                    "avg_wins":myTankStats[key1].avg_wins
                 });
             }
         });
