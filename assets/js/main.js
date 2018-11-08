@@ -50,7 +50,6 @@ function loadJSON(file, callback) {
     xobj.send(null);  
  }
  
-
 function getJSONFile(TankStats) {
 //*********************************************************************************************************************//
 //          This function will import a JSON FILE which contains expected tank values in order to calculate WN8 scores.//
@@ -115,7 +114,6 @@ var TankWn8 = [];
                     "WN8" : WN8,
                     "All" : "All"
                 });
-                console.log(TankStats[key1].TankID, found)
                 found = false;
                 return;
             }
@@ -123,8 +121,7 @@ var TankWn8 = [];
         });
         
     });
-    console.log(TankWn8)
-    makeGraphs(TankWn8)
+    MakeGraphs(TankWn8)
 }
 
 function getPlayerInfo() {
@@ -155,7 +152,6 @@ function getPlayerInfo() {
     return false;
     });
 }
-
 
 function getGenericAccountStats(acc_id) {
 //*********************************************************************************************************************//
@@ -194,7 +190,6 @@ function getAccountTankStats(acc_id){
         var account = acc_id;
         var myTankStatsArray = [];
         data = data.data[account];
-        // console.log(data);
         Object.keys(data).forEach(function(key) {
                 Battles = parseInt(data[key].all.battles);
                 if (Battles > 0) {
@@ -220,7 +215,6 @@ function getAccountTankStats(acc_id){
     return false;
     });
 }
-
 
 function getTankData(myTankStatsArray) {
 //*************************************************************************************************************************//
@@ -302,16 +296,15 @@ function CombineArray(TankArray, myTankStatsArray) {
 function getSecondPart(str) {
     return str.split(':')[1];
 }
+
 function getSecondPartOfSecondPart(str) {
     return str.split(/_(.+)/)[1];
 }
 // ******************************************************************************************************************//
 //                                          Making the GRAPH Section                                                 //
 // ******************************************************************************************************************//
-function makeGraphs(transactionsData) {
+function MakeGraphs(transactionsData) {
     var List = [];
-    console.log(transactionsData)
-    
     transactionsData.forEach(function(d){
         d.Avg_wins = parseInt(d.Avg_wins);
         d.Wins = parseInt(d.Wins);
@@ -323,21 +316,21 @@ function makeGraphs(transactionsData) {
     
     var ndx = crossfilter(transactionsData);
     
-    show_selectors(ndx);
-    makeGraphsWinRatePerLevel(ndx);
-    makeGraphsWinRatePerType(ndx);
-    makeGraphsWN8(ndx);
+    Show_selectors(ndx);
+    MakeGraphsWinRatePerLevel(ndx);
+    MakeGraphsWinRatePerType(ndx);
+    MakeGraphsWN8(ndx);
     MakePieChart(ndx);
     MakePieChartLevel(ndx);
     MakePieChartNation(ndx);
-    // makeWN8(ndx);
+    MakeWN8(ndx);
     MakeDataTable(ndx);
     MakeDataTableSmall(ndx);
         
     dc.renderAll();
 }
 
-function show_selectors(ndx) {
+function Show_selectors(ndx) {
     var disciplineDimLevel = ndx.dimension(dc.pluck("Level"));
     var disciplineSelectLevel = disciplineDimLevel.group();
     
@@ -372,7 +365,7 @@ function show_selectors(ndx) {
         .group(disciplineSelectNation);  
 }
 
-function makeGraphsWinRatePerLevel(ndx) {
+function MakeGraphsWinRatePerLevel(ndx) {
 
 var divwidth = document.getElementById('bar-chart-winrate').offsetWidth;
 
@@ -425,7 +418,7 @@ var dim = ndx.dimension(dc.pluck('Level'));
 
 }
 
-function makeGraphsWinRatePerType(ndx) {
+function MakeGraphsWinRatePerType(ndx) {
 
 var divwidth = document.getElementById('bar-chart-winrate-per-type').offsetWidth;
 
@@ -478,7 +471,7 @@ var dim = ndx.dimension(dc.pluck('Type'));
 
 }
 
-function makeGraphsWN8(ndx) {
+function MakeGraphsWN8(ndx) {
 var dim = ndx.dimension(dc.pluck('Type'));
         var average_wn8_per_type = dim.group().reduce(
             function (p, v) {
@@ -533,60 +526,44 @@ var dim = ndx.dimension(dc.pluck('Type'));
 
 }
 
-// function makeWN8(ndx) {
-// var dim = ndx.dimension(dc.pluck('All'));
-//         var wn8_per_selection = dim.group().reduce(
-//             function (p, v) {
-//                 p.Count++;
-//                 p.Battles += v.Battles;
-//                 p.WN8 += parseInt((v.WN8 * v.Battles).toFixed(2));
-//                 p.Average = parseInt((p.WN8 / p.Battles).toFixed(2)); 
-//                 return p;
-//             },
-//             function (p, v) {
-//                 p.Count--;
-//                 if (p.Count == 0) {
-//                     p.WN8 = 0;
-//                     p.Battles = 0;
-//                     p.Average = 0;
-//                 } else {
+function MakeWN8(ndx) {
+var dim = ndx.dimension(dc.pluck('All'));
+        var wn8_per_selection = dim.group().reduce(
+            function (p, v) {
+                p.Count++;
+                p.Battles += v.Battles;
+                p.WN8 += parseInt((v.WN8 * v.Battles).toFixed(2));
+                p.Average = parseInt((p.WN8 / p.Battles).toFixed(2)); 
+                return p;
+            },
+            function (p, v) {
+                p.Count--;
+                if (p.Count == 0) {
+                    p.WN8 = 0;
+                    p.Battles = 0;
+                    p.Average = 0;
+                } else {
                     
-//                     p.Battles -= v.Battles;
-//                     p.WN8 -= parseInt((v.WN8 * v.Battles).toFixed(2));
-//                     p.Average = parseInt((p.WN8) / p.Battles).toFixed(2);
-//                 }
-//                 return p;
-//             },
-//             function () {
-//                 return {WN8: 0, Count: 0, Average: 0, Battles: 0};
-//             }
+                    p.Battles -= v.Battles;
+                    p.WN8 -= parseInt((v.WN8 * v.Battles).toFixed(2));
+                    p.Average = parseInt((p.WN8) / p.Battles).toFixed(2);
+                }
+                return p;
+            },
+            function () {
+                return {WN8: 0, Count: 0, Average: 0, Battles: 0};
+            }
                 
-//         );
+        );
     
-//     var divwidth = document.getElementById('bar-wn8').offsetWidth;
-//     var chart = dc.barChart("#bar-wn8");
-//     chart
-//         .width(divwidth - 250)
-//         .height(300)
-//         .margins({ top: 10, right: 10, bottom: 50, left: 40 })
-//         .dimension(dim)
-//         .group(wn8_per_selection)
-//         .renderHorizontalGridLines(true)
-//         .valueAccessor(function (p) {
-//             return p.value.Average;
-//         })
-//         .x(d3.scale.ordinal())
-//         .y(d3.scale.linear())
-//         .xUnits(dc.units.ordinal)
-//         // .yUnits(dc.units.linear)
-//         .elasticY(true)
-//         .colorAccessor(function (d) {
-//             return d.key;
-//         })
-//         // .xAxisLabel("Level")
-//         .yAxis().ticks();
-
-// }
+    dc.numberDisplay(wn8)
+        .formatNumber(d3.format(".2"))
+        .valueAccessor(function (p) {
+            return p.value.Average;
+        })
+        .group(wn8_per_selection)
+        $('#wn8').removeClass("hidden");
+}
 
 function MakePieChart(ndx){
     var divwidth = document.getElementById('Type-chart').offsetWidth;

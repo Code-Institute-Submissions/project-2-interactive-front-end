@@ -1,6 +1,12 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto');
 
 
+body {
+    background-image: url("../images/background.jpg");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
 h2, h3, h4, a, p {
     font-family: 'Roboto', sans-serif;
 }
@@ -13,12 +19,8 @@ h3 {
 a{
     color: blue;
 }
-body {
-    background-image: url("../images/background.jpg");
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-}
 
+/*Nav bar section*/
 .navbar {
     background-color: #f5f5f5;
     background-image: linear-gradient(to bottom, #FFFFFF, #e2e2e2);
@@ -30,23 +32,32 @@ body {
     padding-left: 30px;
 }
 
+.number-box{
+    float: left;
+    height: 50px;
+    padding: 15px 15px;
+    font-size: 18px;
+    line-height: 20px;
+}
+
 #Home{
     margin-top: 50px;
 }
+/*Overview and search block section*/
 
-.header{
-    background-color:#006400;
-    color: white;
+.overview, .search-block{
+    color: black;
+    border: 1px solid #006400;
+    border-radius: 4px;
+    padding: 10px 25px;
+    text-align: center;
 }
+
 
 .highlight{
     background-color: yellow;
     font-style: italic;
     font-weight: bold;
-}
-
-.row{
-    margin: 0px;
 }
 
 .left{
@@ -57,6 +68,14 @@ body {
     color: red;
 }
 
+/* Statistics Session*/
+
+.title{
+    border-bottom: 1px solid #006400;
+    padding: 10px 25px;
+    text-align: center;
+}
+
 .box-wrapper {
     background-color: #f2f2f2;
     border-radius: 4px;
@@ -65,33 +84,13 @@ body {
     margin: 10px;
 }
 
-.overview, .search-block{
-    color: black;
-    border: 1px solid #006400;
-    border-radius: 4px;
-    padding: 10px 25px;
-    text-align: center;
-}
-
-.title{
-    border-bottom: 1px solid #006400;
-    padding: 10px 25px;
-    text-align: center;
-}
-
 .stat-display{
     text-align: center;
     color: #000000;
     padding: 10px;
 }
 
-.copyrightInfo {
-    margin: 0 auto;
-    padding: 20px 0;
-    font-size: 11px;
-    color: #7D7D7D;
-    text-align: center;
-}
+
 .dc-table-label {
     width: 1000px;
     column-span:all;
@@ -111,4 +110,17 @@ body {
     min-height: 305px;
 }
 
+.header{
+    background-color:#006400;
+    color: white;
+}
 
+/*Footer section*/
+
+.copyrightInfo {
+    margin: 0 auto;
+    padding: 20px 0;
+    font-size: 11px;
+    color: #7D7D7D;
+    text-align: center;
+}
