@@ -34,7 +34,7 @@
 
 <section id="Home">
     <div class="row">
-        <div class="col-sm-8 col-sm-offset-2">
+        <div class="col-sm-12">
             <div class="box-wrapper search-block">
                 <h1 class="section-heading center-position">World of Tanks Player Statistics</h1>
                 <form class="form-inline center-position" onsubmit="getPlayerInfo();return false">
@@ -48,7 +48,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-8 col-sm-offset-2" id="Comments">
+        <div class="col-sm-12" id="Comments">
             <div class="box-wrapper overview">
                 <h2>This site is best presented on desktop systems!</h2>
                 <p>The main focus for this site is to have interactive possibilities with Graphs and Data Tables.
@@ -74,7 +74,7 @@
 </section> 
 <section id="stats-section" class="hidden">
     <div class="row">
-        <div class="col-sm-8 col-sm-offset-2">
+        <div class="col-sm-12">
             <div class="box-wrapper">
                 <div class="clearfix stat-display">
                     <h3>Generic Account stats</h3>
@@ -87,83 +87,79 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-4 col-md-4 col-sm-offset-2">
+        <div class="col-sm-6 col-md-6">
             <div class="box-wrapper silver-light-bg-colour">
                 <div class="title">
                     <h4 id="Level_selector2">Average WinRate per Level&#09;</h4>
                 </div>
-                <div class="clearfix">
+                <div class="clearfix min-height">
                     <div id="bar-chart-winrate"></div>
                 </div>
             </div>
         </div>
-
-        <div class="col-sm-4 col-md-4">
-            <div class="box-wrapper">
+        <div class="col-sm-6 col-md-6">
+            <div class="box-wrapper silver-light-bg-colour">
                 <div class="title">
-                    <h4 id="Type_selector">Average WN8 per Type&#09;</h4>
+                    <h4 id="Type_selector">Average WinRate per Type&#09;</h4>
                 </div>
-                <div class="clearfix">
-                    <div id="bar-chart-wn8"></div>
+                <div class="clearfix min-height">
+                    <div id="bar-chart-winrate-per-type"></div>
                 </div>
             </div>
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-4 col-md-4 col-sm-offset-2">
+        <div class="col-sm-6 col-md-6">
             <div class="box-wrapper">
                 <div class="title">
-                    <h4 id="Type_selector2">Battles per Type&#09;</h4>
+                    <h4 id="Type_selector2">Average WN8 per Type&#09;</h4>
                 </div>
-                <div class="clearfix">
-                    <div id="Type-chart"></div>
+                <div class="clearfix min-height">
+                    <div id="bar-chart-wn8"></div>
                 </div>
             </div>
         </div>
-
-        <div class="col-sm-4 col-md-4 ">
+        <div class="col-sm-6 col-md-6">
             <div class="box-wrapper">
                 <div class="title">
-                    <h4 id="Level_selector">Battles per Level&#09;</h4>
+                    <h4 id="Type_selector3">Battles amounts per Type&#09;</h4>
                 </div>
-                <div class="clearfix">
-                    <div id="Level-chart"></div>
+                <div class="clearfix min-height">
+                    <div id="Type-chart"></div>
                 </div>
             </div>
         </div>
     </div>
     
     <div class="row">
-        <div class="col-sm-4 col-md-4 col-sm-offset-2">
+        <div class="col-sm-6 col-md-6">
             <div class="box-wrapper">
                 <div class="title">
                     <h4 id="Nation_selector">Battles per Nation&#09;</h4>
                 </div>
-                <div class="clearfix">
+                <div class="clearfix min-height">
                     <div id="Nation-chart"></div>
                 </div>
             </div>
         </div>
-
-        <div class="col-sm-4 col-md-4 ">
+        <div class="col-sm-6 col-md-6">
             <div class="box-wrapper">
                 <div class="title">
-                    <h4 id="">Average WN8 for Selection&#09;</h4>
+                    <h4 id="Level_selector">Battles per Level&#09;</h4>
                 </div>
-                <div class="clearfix">
-                    <div id="bar-wn8"></div>
+                <div class="clearfix min-height">
+                    <div id="Level-chart"></div>
                 </div>
             </div>
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-8 col-sm-offset-2">
+        <div class="col-sm-12">
             <div class="box-wrapper">
                 <table class="table table-hover hidden-xs clearfix" id="Table">
                     <thead>
                         <tr class="header">
                             <th>Name</th>
-                            <th>Nation</th>
                             <th>Type</th>
                             <th>Level</th>
                             <th>Battles</th>
@@ -176,7 +172,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-8 col-sm-offset-2">
+        <div class="col-sm-12">
             <div class="box-wrapper">
                 <table class="table table-hover clearfix visible-xs-block" id="TableSmall">
                     <thead>
@@ -193,7 +189,7 @@
 </section> 
 <footer>
     <div class="row">
-        <div class="col-sm-8 col-sm-offset-2" id="copyrightInfo">
+        <div class="col-sm-12" id="copyrightInfo">
             <div class="box-wrapper overview">
                 WoTStat is a free, player created web service for <a href="http://www.wargaming.net/">World of Tanks</a>. 
                 WoTStat is not an official website of Wargaming.net or any of its services.<br />World of Tanks is a trademark of 

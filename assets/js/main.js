@@ -324,14 +324,15 @@ function makeGraphs(transactionsData) {
     var ndx = crossfilter(transactionsData);
     
     show_selectors(ndx);
-    makeGraphsWinRate(ndx);
+    makeGraphsWinRatePerLevel(ndx);
+    makeGraphsWinRatePerType(ndx);
     makeGraphsWN8(ndx);
     MakePieChart(ndx);
     MakePieChartLevel(ndx);
     MakePieChartNation(ndx);
-    makeWN8(ndx);
-    MakeDataTable(ndx)
-    MakeDataTableSmall(ndx)
+    // makeWN8(ndx);
+    MakeDataTable(ndx);
+    MakeDataTableSmall(ndx);
         
     dc.renderAll();
 }
@@ -343,33 +344,40 @@ function show_selectors(ndx) {
     var disciplineDimType = ndx.dimension(dc.pluck("Type"));
     var disciplineSelectType = disciplineDimType.group();
     
-    var disciplineDimType = ndx.dimension(dc.pluck("Nation"));
-    var disciplineSelectNation = disciplineDimType.group();
+    var disciplineDimNation = ndx.dimension(dc.pluck("Nation"));
+    var disciplineSelectNation = disciplineDimNation.group();
     
     dc.selectMenu("#Level_selector")
         .dimension(disciplineDimLevel)
-        .group(disciplineSelectLevel)
+        .group(disciplineSelectLevel);
 
     dc.selectMenu("#Level_selector2")
         .dimension(disciplineDimLevel)
-        .group(disciplineSelectLevel)    
+        .group(disciplineSelectLevel) ;   
     
     dc.selectMenu("#Type_selector")
         .dimension(disciplineDimType)
         .group(disciplineSelectType);    
     
-        dc.selectMenu("#Type_selector2")
+    dc.selectMenu("#Type_selector2")
+        .dimension(disciplineDimType)
+        .group(disciplineSelectType);
+    
+    dc.selectMenu("#Type_selector3")
         .dimension(disciplineDimType)
         .group(disciplineSelectType);
         
     dc.selectMenu("#Nation_selector")
-        .dimension(disciplineDimType)
+        .dimension(disciplineDimNation)
         .group(disciplineSelectNation);  
 }
 
-function makeGraphsWinRate(ndx) {
+function makeGraphsWinRatePerLevel(ndx) {
+
+var divwidth = document.getElementById('bar-chart-winrate').offsetWidth;
+
 var dim = ndx.dimension(dc.pluck('Level'));
-        var group = dim.group().reduce(
+        var winrate_per_level = dim.group().reduce(
             function (p, v) {
                 p.Count++;
                 p.Wins += v.Wins;
@@ -394,14 +402,67 @@ var dim = ndx.dimension(dc.pluck('Level'));
                 return {Wins: 0, Count: 0, Average: 0, Battles: 0};
             }
         );
-     
+    
     var chart = dc.barChart("#bar-chart-winrate");
     chart
-        .width(400)
+        .width(divwidth - 50)
         .height(300)
-        .margins({ top: 10, right: 150, bottom: 50, left: 50 })
+        .margins({ top: 10, right: 30, bottom: 40, left: 40 })
         .dimension(dim)
-        .group(group)
+        .group(winrate_per_level)
+        .renderHorizontalGridLines(true)
+        .valueAccessor(function (p) {
+            return p.value.Average.toFixed(4);
+        })
+        .x(d3.scale.ordinal())
+        .xUnits(dc.units.ordinal)
+        .elasticY(true)
+        .colorAccessor(function (d) {
+            return d.key;
+        })
+        .xAxisLabel("Level")
+        .yAxis().ticks(9);
+
+}
+
+function makeGraphsWinRatePerType(ndx) {
+
+var divwidth = document.getElementById('bar-chart-winrate-per-type').offsetWidth;
+
+var dim = ndx.dimension(dc.pluck('Type'));
+        var winrate_per_level = dim.group().reduce(
+            function (p, v) {
+                p.Count++;
+                p.Wins += v.Wins;
+                p.Battles += v.Battles;
+                p.Average = p.Wins / p.Battles;
+                return p;
+            },
+            function (p, v) {
+                p.Count--;
+                if (p.Count == 0) {
+                    p.Wins = 0;
+                    p.Battles = 0;
+                    p.Average = 0;
+                } else {
+                    p.Wins -= v.Wins;
+                    p.Battles -= v.Battles;
+                    p.Average = p.Wins / p.Battles;
+                }
+                return p;
+            },
+            function () {
+                return {Wins: 0, Count: 0, Average: 0, Battles: 0};
+            }
+        );
+    
+    var chart = dc.barChart("#bar-chart-winrate-per-type");
+    chart
+        .width(divwidth - 50)
+        .height(300)
+        .margins({ top: 10, right: 30, bottom: 40, left: 40 })
+        .dimension(dim)
+        .group(winrate_per_level)
         .renderHorizontalGridLines(true)
         .valueAccessor(function (p) {
             return p.value.Average.toFixed(4);
@@ -419,7 +480,7 @@ var dim = ndx.dimension(dc.pluck('Level'));
 
 function makeGraphsWN8(ndx) {
 var dim = ndx.dimension(dc.pluck('Type'));
-        var group = dim.group().reduce(
+        var average_wn8_per_type = dim.group().reduce(
             function (p, v) {
                 p.Count++;
                 p.Battles += v.Battles;
@@ -447,14 +508,14 @@ var dim = ndx.dimension(dc.pluck('Type'));
                 
         );
     
-
+    var divwidth = document.getElementById('bar-chart-wn8').offsetWidth;
     var chart = dc.barChart("#bar-chart-wn8");
     chart
-        .width(400)
+        .width(divwidth - 50)
         .height(300)
-        .margins({ top: 10, right: 150, bottom: 50, left: 50 })
+        .margins({ top: 10, right: 30, bottom: 50, left: 40 })
         .dimension(dim)
-        .group(group)
+        .group(average_wn8_per_type)
         .renderHorizontalGridLines(true)
         .valueAccessor(function (p) {
             return p.value.Average;
@@ -467,95 +528,95 @@ var dim = ndx.dimension(dc.pluck('Type'));
         .colorAccessor(function (d) {
             return d.key;
         })
-        .xAxisLabel("Level")
+        .xAxisLabel("Type")
         .yAxis().ticks();
 
 }
 
-function makeWN8(ndx) {
-var dim = ndx.dimension(dc.pluck('All'));
-        var group = dim.group().reduce(
-            function (p, v) {
-                p.Count++;
-                p.Battles += v.Battles;
-                p.WN8 += parseInt((v.WN8 * v.Battles).toFixed(2));
-                p.Average = parseInt((p.WN8 / p.Battles).toFixed(2)); 
-                return p;
-            },
-            function (p, v) {
-                p.Count--;
-                if (p.Count == 0) {
-                    p.WN8 = 0;
-                    p.Battles = 0;
-                    p.Average = 0;
-                } else {
+// function makeWN8(ndx) {
+// var dim = ndx.dimension(dc.pluck('All'));
+//         var wn8_per_selection = dim.group().reduce(
+//             function (p, v) {
+//                 p.Count++;
+//                 p.Battles += v.Battles;
+//                 p.WN8 += parseInt((v.WN8 * v.Battles).toFixed(2));
+//                 p.Average = parseInt((p.WN8 / p.Battles).toFixed(2)); 
+//                 return p;
+//             },
+//             function (p, v) {
+//                 p.Count--;
+//                 if (p.Count == 0) {
+//                     p.WN8 = 0;
+//                     p.Battles = 0;
+//                     p.Average = 0;
+//                 } else {
                     
-                    p.Battles -= v.Battles;
-                    p.WN8 -= parseInt((v.WN8 * v.Battles).toFixed(2));
-                    p.Average = parseInt((p.WN8) / p.Battles).toFixed(2);
-                }
-                return p;
-            },
-            function () {
-                return {WN8: 0, Count: 0, Average: 0, Battles: 0};
-            }
+//                     p.Battles -= v.Battles;
+//                     p.WN8 -= parseInt((v.WN8 * v.Battles).toFixed(2));
+//                     p.Average = parseInt((p.WN8) / p.Battles).toFixed(2);
+//                 }
+//                 return p;
+//             },
+//             function () {
+//                 return {WN8: 0, Count: 0, Average: 0, Battles: 0};
+//             }
                 
-        );
+//         );
     
+//     var divwidth = document.getElementById('bar-wn8').offsetWidth;
+//     var chart = dc.barChart("#bar-wn8");
+//     chart
+//         .width(divwidth - 250)
+//         .height(300)
+//         .margins({ top: 10, right: 10, bottom: 50, left: 40 })
+//         .dimension(dim)
+//         .group(wn8_per_selection)
+//         .renderHorizontalGridLines(true)
+//         .valueAccessor(function (p) {
+//             return p.value.Average;
+//         })
+//         .x(d3.scale.ordinal())
+//         .y(d3.scale.linear())
+//         .xUnits(dc.units.ordinal)
+//         // .yUnits(dc.units.linear)
+//         .elasticY(true)
+//         .colorAccessor(function (d) {
+//             return d.key;
+//         })
+//         // .xAxisLabel("Level")
+//         .yAxis().ticks();
 
-    var chart = dc.barChart("#bar-wn8");
-    chart
-        .width(400)
-        .height(300)
-        .margins({ top: 10, right: 150, bottom: 50, left: 50 })
-        .dimension(dim)
-        .group(group)
-        .renderHorizontalGridLines(true)
-        .valueAccessor(function (p) {
-            return p.value.Average;
-        })
-        .x(d3.scale.ordinal())
-        .y(d3.scale.linear())
-        .xUnits(dc.units.ordinal)
-        // .yUnits(dc.units.linear)
-        .elasticY(true)
-        .colorAccessor(function (d) {
-            return d.key;
-        })
-        // .xAxisLabel("Level")
-        .yAxis().ticks();
-
-}
+// }
 
 function MakePieChart(ndx){
-    
+    var divwidth = document.getElementById('Type-chart').offsetWidth;
     var name_dim = ndx.dimension(dc.pluck('Type'));
-    var total_battles = name_dim.group().reduceSum(dc.pluck('Battles'));
+    var total_battles_per_type = name_dim.group().reduceSum(dc.pluck('Battles'));
     
     dc.pieChart('#Type-chart')
         .height(300)
-        .width(380)
+        .width(divwidth-10)
         .radius(90)
         .transitionDuration(1500)
         .dimension(name_dim)
-        .group(total_battles)
+        .group(total_battles_per_type)
         .legend(dc.legend().x(15).y(25).itemHeight(10).gap(5));
 
     
 }
 
 function MakePieChartLevel(ndx){
-    
+    var divwidth = document.getElementById('Level-chart').offsetWidth;
     var name_dim = ndx.dimension(dc.pluck('Level'));
-    var total_battles = name_dim.group().reduceSum(dc.pluck('Battles'));
+    var total_battles_per_level = name_dim.group().reduceSum(dc.pluck('Battles'));
     
     dc.pieChart('#Level-chart')
         .height(300)
-        .width(380)
+        .width(divwidth-10)
         .radius(90)
         .transitionDuration(1500)
         .dimension(name_dim)
-        .group(total_battles)
+        .group(total_battles_per_level)
         .ordering(function(d) { return d.key })
         .legend(dc.legend().x(15).y(25).itemHeight(10).gap(5));
 
@@ -563,17 +624,17 @@ function MakePieChartLevel(ndx){
 }
 
 function MakePieChartNation(ndx){
-    
+    var divwidth = document.getElementById('Nation-chart').offsetWidth;
     var name_dim = ndx.dimension(dc.pluck('Nation'));
-    var total_battles = name_dim.group().reduceSum(dc.pluck('Battles'));
+    var total_battles_per_nation = name_dim.group().reduceSum(dc.pluck('Battles'));
     
     dc.pieChart('#Nation-chart')
         .height(300)
-        .width(380)
+        .width(divwidth-10)
         .radius(90)
         .transitionDuration(1500)
         .dimension(name_dim)
-        .group(total_battles)
+        .group(total_battles_per_nation)
         .ordering(function(d) { return d.key })
         .legend(dc.legend().x(15).y(25).itemHeight(10).gap(5));
 
@@ -590,18 +651,15 @@ function MakeDataTable(ndx){
       .size(205)             // number of rows to return
       .columns([
       function(d) { return d.TankName;},
-      function(d) { return d.Nation;},
       function(d) { return d.Type;},
       function(d) { return d.Level;},
       function(d) { return d.Battles;},
       function(d) { return d.Avg_wins;},
       function(d) { return d.WN8;},
     ])
-      .sortBy(function(d){ return d.Winrate;})
+      .sortBy(function(d){ return d.Avg_wins;})
       .order(d3.descending);
 
-dc.renderAll();
-    
 }
 
 function MakeDataTableSmall(ndx){
@@ -620,6 +678,4 @@ function MakeDataTableSmall(ndx){
       .sortBy(function(d){ return d.Avg_wins;})
       .order(d3.descending);
 
-dc.renderAll();
-    
 }
