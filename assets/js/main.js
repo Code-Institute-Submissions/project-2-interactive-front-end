@@ -183,7 +183,7 @@ function getAccountTankStats(acc_id){
         var myTankStats = [];
         data = data.data[account];
         Object.keys(data).forEach(function(key) {
-                Battles = parseInt(data[key].all.battles,2);
+                Battles = parseInt(data[key].all.battles);
                 if (Battles > 0) {
                     myTankStats.push({
                         "battles": data[key].all.battles,
