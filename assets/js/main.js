@@ -29,7 +29,7 @@ function getDataFromApi(type, arg, cb) {
         xhr.open("GET", "https://api.worldoftanks.eu/wot/encyclopedia/tanks/?application_id=5d6d1657c5bc736658f1e6aa3dcb5f6e&fields=level%2C+nation%2C+tank_id%2C+type%2C+name");
     }
     else if (type == 'vehicle-stats') {
-        xhr.open("GET", "https://api.worldoftanks.eu/wot/tanks/stats/?application_id=5d6d1657c5bc736658f1e6aa3dcb5f6e&account_id="+ arg + "&fields=all%2C+tank_id")
+        xhr.open("GET", "https://api.worldoftanks.eu/wot/tanks/stats/?application_id=5d6d1657c5bc736658f1e6aa3dcb5f6e&account_id="+ arg + "&fields=all%2C+tank_id");
     }
     else  {
        
@@ -57,10 +57,6 @@ function getJSONFile(TankStats) {
 //          http://www.wnefficiency.net/wnexpected/                                                                   //
 //********************************************************************************************************************//
     var Wn8Obj = [];
-    var b = 0;
-    var wn = 0;
-    var avgWn = 0;
-    
     loadJSON("./assets/data/WN8.json", function(callback) {
         var actual_JSON = JSON.parse(callback);
         actual_JSON.forEach(function(item) {
@@ -73,7 +69,7 @@ function getJSONFile(TankStats) {
             "expWin" : item.expWinRate,
             });
         });
-        calculateWn8(TankStats, Wn8Obj)
+        calculateWn8(TankStats, Wn8Obj);
     });
 } 
    
@@ -82,7 +78,6 @@ function calculateWn8(TankStats, Wn8Obj){
 //          This function will combine the object created from JSON import with the Tanks Stats and will calculate    //
 //          the WN8 score per tank, and stores that in a new Object which contains now all Tank data + WN8 score      //
 //********************************************************************************************************************//    
-var found = ""
 var TankWn8 = [];
     Object.keys(TankStats).forEach(function(key1){
         Object.keys(Wn8Obj).forEach(function(key2){
@@ -114,21 +109,19 @@ var TankWn8 = [];
                     "WN8" : WN8,
                     "All" : "All"
                 });
-                found = false;
                 return;
             }
-            
         });
         
     });
-    MakeGraphs(TankWn8)
+    MakeGraphs(TankWn8);
 }
 
 function getPlayerInfo() {
 //*********************************************************************************************************************//
 //          This function will call the API to get the Account ID back based on the requested Nickname search         //
 //********************************************************************************************************************//
-    var type = "nickname"
+    var type = "nickname";
     var Accountid = "" ;
     
     // get the account_id from the player that from the input field//
@@ -142,11 +135,10 @@ function getPlayerInfo() {
                 alert('Invalid Name, please try again');
             }
             else {
-                Accountid = data['account_id']
+                Accountid = data['account_id'];
                 $('#NickName').html(`<h4>Overall player statistics for: <span class="red">${data['nickname']}</span></h4>`);
                 $('#Comments').addClass("hidden");
                 $('#stats-section').removeClass("hidden");
-                //After waiting for the Request to be finished, The Account ID can be used to for the next API call to get the account statistics
                 getGenericAccountStats(Accountid);
             }
     return false;
@@ -157,7 +149,7 @@ function getGenericAccountStats(acc_id) {
 //*********************************************************************************************************************//
 //          This function will call the API to get the General Account Statistics back based on the found Accound ID   //
 //********************************************************************************************************************//
-    var type = "account_id"
+    var type = "account_id";
     var arg = acc_id.toString();
     getDataFromApi(type, arg, function(data) {
         var account = acc_id;
@@ -171,7 +163,7 @@ function getGenericAccountStats(acc_id) {
         $('#Global_Rating').html(`<h4>Global Rating: <span class="red">${GlobalRating}</span></h4>`);
         $('#Last_Battle').html(`<h4>Last Battle played at: <span class="red">${d.toLocaleDateString()}</span></h4>`);
         // ------------------------------------------------------------Get now the data of the player on his specific tanks
-        getAccountTankStats(account)
+        getAccountTankStats(account);
         
     return false;
     });
@@ -191,7 +183,7 @@ function getAccountTankStats(acc_id){
         var myTankStats = [];
         data = data.data[account];
         Object.keys(data).forEach(function(key) {
-                Battles = parseInt(data[key].all.battles);
+                Battles = parseInt(data[key].all.battles,2);
                 if (Battles > 0) {
                     myTankStats.push({
                         "battles": data[key].all.battles,
@@ -222,7 +214,7 @@ function getTankData(myTankStats) {
 //          This information is needed to enrich the data from the previous API with tank type, name, Nation and level     //
 //          End result is a list that will be passed to a function to combine both                                         //
 //*************************************************************************************************************************//
-    var type = "vehicle"
+    var type = "vehicle";
     var arg = ""; //no need for an accountid
     getDataFromApi(type, arg, function(data) {
         data = data.data;
@@ -304,14 +296,13 @@ function getSecondPartOfSecondPart(str) {
 //                                          Making the GRAPH Section                                                 //
 // ******************************************************************************************************************//
 function MakeGraphs(transactionsData) {
-    var List = [];
+
     transactionsData.forEach(function(d){
         d.Avg_wins = parseInt(d.Avg_wins);
         d.Wins = parseInt(d.Wins);
         d.Battles = parseInt(d.Battles);
         d.Level = parseInt(d.Level);
         d.WN8 = parseInt(d.WN8);
-        
     });
     
     var ndx = crossfilter(transactionsData);
