@@ -50,12 +50,10 @@ The site can be viewed [HERE](https://martinloef.github.io/project-2-interactive
 ### Existing Features
 - Searchbox for nickname
 - Interactive graphs for custom selections and battle statistics (winrate)
-- Information about which tans they have played with
-
-### Features Left to Implement
-- I'm planning to make this a real website that should compete with existing websites. In order to achive that, i should build in battle performance rating.
-- In order to achive that, i have to calculate the WN8 score (http://wiki.wnefficiency.net/pages/WN8), use the foundations JSON File (http://www.wnefficiency.net/wnexpected/)
-- Extend my API call with battle performance statistics per tank
+- Information about which tanks they have played with
+- calculation of WN8 scores overall
+- Calculation of WN8 scores per tank
+- Battle performance statistics per tank, nation, type, tier
 
 ## Tech Used
 
