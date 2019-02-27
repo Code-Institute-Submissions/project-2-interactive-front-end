@@ -5,7 +5,7 @@ function getDataFromApi(type, arg, cb) {
 //                      option 1: search player name to Get Account ID                                                                                             //
 //                      option 2: search account_id to get player statistics                                                                                       //
 //                      option 3: search account_id to get player vs vehicle stats                                                                                 //
-//                      option 4: search for all tanks to get the tank name, level, nation                                                                         //
+//                      option 4: search for all tanks to get the tank name, tier, nation                                                                         //
 //                      Option 5: search for specific tank stats                                                                                                   //
 //*****************************************************************************************************************************************************************//    
     var xhr = new XMLHttpRequest();
@@ -26,7 +26,7 @@ function getDataFromApi(type, arg, cb) {
         xhr.open("GET", "https://api.worldoftanks.eu/wot/account/tanks/?application_id=5d6d1657c5bc736658f1e6aa3dcb5f6e&account_id=" + arg);
     }
     else if (type == 'vehicle') {
-        xhr.open("GET", "https://api.worldoftanks.eu/wot/encyclopedia/tanks/?application_id=5d6d1657c5bc736658f1e6aa3dcb5f6e&fields=level%2C+nation%2C+tank_id%2C+type%2C+name");
+        xhr.open("GET", "https://api.worldoftanks.eu/wot/encyclopedia/vehicles/?application_id=5d6d1657c5bc736658f1e6aa3dcb5f6e&fields=tier%2C+nation%2C+type%2C+name%2C+tank_id");
     }
     else if (type == 'vehicle-stats') {
         xhr.open("GET", "https://api.worldoftanks.eu/wot/tanks/stats/?application_id=5d6d1657c5bc736658f1e6aa3dcb5f6e&account_id="+ arg + "&fields=all%2C+tank_id");
@@ -100,7 +100,7 @@ var TankWn8 = [];
                 TankWn8.push({
                     "Tank_id": TankStats[key1].TankID,
                     "TankName" : TankStats[key1].Name,
-                    "Level":  TankStats[key1].Level,
+                    "Tier":  TankStats[key1].Tier,
                     "Type":  TankStats[key1].Type,
                     "Nation":  TankStats[key1].Nation,
                     "Wins": TankStats[key1].wins,
@@ -211,7 +211,7 @@ function getAccountTankStats(acc_id){
 function getTankData(myTankStats) {
 //*************************************************************************************************************************//
 //          This function will call the API to get the all available Tanks in game                                         //
-//          This information is needed to enrich the data from the previous API with tank type, name, Nation and level     //
+//          This information is needed to enrich the data from the previous API with tank type, name, Nation and tier     //
 //          End result is a list that will be passed to a function to combine both                                         //
 //*************************************************************************************************************************//
     var type = "vehicle";
@@ -224,7 +224,7 @@ function getTankData(myTankStats) {
                     "Name": data[key].name,
                     "Nation":data[key].nation,
                     "Type":data[key].type,
-                    "Level": data[key].level,
+                    "Tier": data[key].tier,
                     "Tank_Id": data[key].tank_id
                 });
             });
@@ -236,7 +236,7 @@ function getTankData(myTankStats) {
 
 function Combine(Tanks, myTankStats) {
 //*****************************************************************************************************************************//
-//          This function will combine the player tankss list with the tank list to get battle results per nation, level, type //
+//          This function will combine the player tankss list with the tank list to get battle results per nation, tier, type //
 //          Also comverting the tank type to a short name which is mostly used and know by the players                         //
 //          Also calculating the winrate per tank based on the wins and battles fought                                         //
 //*****************************************************************************************************************************//    
@@ -258,10 +258,10 @@ function Combine(Tanks, myTankStats) {
                 
                 TankStats.push({
                     "TankID": Tanks[key2].Tank_Id,
-                    "Name": getSecondPartOfSecondPart(getSecondPart(Tanks[key2].Name)),
+                    "Name": Tanks[key2].Name,
                     "Nation":Tanks[key2].Nation,
                     "Type":Type,
-                    "Level": Tanks[key2].Level,
+                    "Tier": Tanks[key2].Tier,
                     "battles": myTankStats[key1].battles,
                     "capture_points":myTankStats[key1].capture_points,
                     "avg_cp":myTankStats[key1].avg_cp,
@@ -301,18 +301,18 @@ function MakeGraphs(transactionsData) {
         d.Avg_wins = parseInt(d.Avg_wins);
         d.Wins = parseInt(d.Wins);
         d.Battles = parseInt(d.Battles);
-        d.Level = parseInt(d.Level);
+        d.Tier = parseInt(d.Tier);
         d.WN8 = parseInt(d.WN8);
     });
     
     var ndx = crossfilter(transactionsData);
     
     Show_selectors(ndx);
-    MakeGraphsWinRatePerLevel(ndx);
+    MakeGraphsWinRatePerTier(ndx);
     MakeGraphsWinRatePerType(ndx);
     MakeGraphsWN8(ndx);
     MakePieChart(ndx);
-    MakePieChartLevel(ndx);
+    MakePieChartTier(ndx);
     MakePieChartNation(ndx);
     MakeWN8(ndx);
     MakeDataTable(ndx);
@@ -322,8 +322,8 @@ function MakeGraphs(transactionsData) {
 }
 
 function Show_selectors(ndx) {
-    var disciplineDimLevel = ndx.dimension(dc.pluck("Level"));
-    var disciplineSelectLevel = disciplineDimLevel.group();
+    var disciplineDimTier = ndx.dimension(dc.pluck("Tier"));
+    var disciplineSelectTier = disciplineDimTier.group();
     
     var disciplineDimType = ndx.dimension(dc.pluck("Type"));
     var disciplineSelectType = disciplineDimType.group();
@@ -331,13 +331,13 @@ function Show_selectors(ndx) {
     var disciplineDimNation = ndx.dimension(dc.pluck("Nation"));
     var disciplineSelectNation = disciplineDimNation.group();
     
-    dc.selectMenu("#Level_selector")
-        .dimension(disciplineDimLevel)
-        .group(disciplineSelectLevel);
+    dc.selectMenu("#Tier_selector")
+        .dimension(disciplineDimTier)
+        .group(disciplineSelectTier);
 
-    dc.selectMenu("#Level_selector2")
-        .dimension(disciplineDimLevel)
-        .group(disciplineSelectLevel) ;   
+    dc.selectMenu("#Tier_selector2")
+        .dimension(disciplineDimTier)
+        .group(disciplineSelectTier) ;   
     
     dc.selectMenu("#Type_selector")
         .dimension(disciplineDimType)
@@ -356,12 +356,12 @@ function Show_selectors(ndx) {
         .group(disciplineSelectNation);  
 }
 
-function MakeGraphsWinRatePerLevel(ndx) {
+function MakeGraphsWinRatePerTier(ndx) {
 
 var divwidth = document.getElementById('bar-chart-winrate').offsetWidth;
 
-var dim = ndx.dimension(dc.pluck('Level'));
-        var winrate_per_level = dim.group().reduce(
+var dim = ndx.dimension(dc.pluck('Tier'));
+        var winrate_per_tier = dim.group().reduce(
             function (p, v) {
                 p.Count++;
                 p.Wins += v.Wins;
@@ -393,7 +393,7 @@ var dim = ndx.dimension(dc.pluck('Level'));
         .height(300)
         .margins({ top: 10, right: 30, bottom: 40, left: 40 })
         .dimension(dim)
-        .group(winrate_per_level)
+        .group(winrate_per_tier)
         .renderHorizontalGridLines(true)
         .valueAccessor(function (p) {
             return p.value.Average.toFixed(4);
@@ -404,7 +404,7 @@ var dim = ndx.dimension(dc.pluck('Level'));
         .colorAccessor(function (d) {
             return d.key;
         })
-        .xAxisLabel("Level")
+        .xAxisLabel("Tier")
         .yAxis().ticks(9);
 
 }
@@ -414,7 +414,7 @@ function MakeGraphsWinRatePerType(ndx) {
 var divwidth = document.getElementById('bar-chart-winrate-per-type').offsetWidth;
 
 var dim = ndx.dimension(dc.pluck('Type'));
-        var winrate_per_level = dim.group().reduce(
+        var winrate_per_tier = dim.group().reduce(
             function (p, v) {
                 p.Count++;
                 p.Wins += v.Wins;
@@ -446,7 +446,7 @@ var dim = ndx.dimension(dc.pluck('Type'));
         .height(300)
         .margins({ top: 10, right: 30, bottom: 40, left: 40 })
         .dimension(dim)
-        .group(winrate_per_level)
+        .group(winrate_per_tier)
         .renderHorizontalGridLines(true)
         .valueAccessor(function (p) {
             return p.value.Average.toFixed(4);
@@ -457,7 +457,7 @@ var dim = ndx.dimension(dc.pluck('Type'));
         .colorAccessor(function (d) {
             return d.key;
         })
-        .xAxisLabel("Level")
+        .xAxisLabel("Tier")
         .yAxis().ticks(9);
 
 }
@@ -573,18 +573,18 @@ function MakePieChart(ndx){
     
 }
 
-function MakePieChartLevel(ndx){
-    var divwidth = document.getElementById('Level-chart').offsetWidth;
-    var name_dim = ndx.dimension(dc.pluck('Level'));
-    var total_battles_per_level = name_dim.group().reduceSum(dc.pluck('Battles'));
+function MakePieChartTier(ndx){
+    var divwidth = document.getElementById('Tier-chart').offsetWidth;
+    var name_dim = ndx.dimension(dc.pluck('Tier'));
+    var total_battles_per_tier = name_dim.group().reduceSum(dc.pluck('Battles'));
     
-    dc.pieChart('#Level-chart')
+    dc.pieChart('#Tier-chart')
         .height(300)
         .width(divwidth-10)
         .radius(90)
         .transitionDuration(1500)
         .dimension(name_dim)
-        .group(total_battles_per_level)
+        .group(total_battles_per_tier)
         .ordering(function(d) { return d.key })
         .legend(dc.legend().x(15).y(25).itemHeight(10).gap(5));
 
@@ -620,7 +620,7 @@ function MakeDataTable(ndx){
       .columns([
       function(d) { return d.TankName;},
       function(d) { return d.Type;},
-      function(d) { return d.Level;},
+      function(d) { return d.Tier;},
       function(d) { return d.Battles;},
       function(d) { return d.Avg_wins;},
       function(d) { return d.WN8;},
